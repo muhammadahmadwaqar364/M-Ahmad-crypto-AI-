@@ -6,7 +6,11 @@
 // data fails, show an error, never an invented price.
 (function () {
   "use strict";
-  var COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT"];
+  var COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT",
+    // Binance futures coins (mostly NOT on Binance spot — scanned via Bitget Futures candles)
+    "BLESSUSDT","HUMAUSDT","SENTUSDT","MMTUSDT","BREVUSDT","ZKCUSDT","LUNCUSDT","INITUSDT","LYNUSDT"];
+  // Coins actually listed on Binance spot — only these go in the live list ticker call.
+  var LIST_COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT"];
   var RISK = 5; // $ per trade, fixed
   var SAPI = "https://data-api.binance.vision/api/v3";
   var $ = function (id) { return document.getElementById(id); };
@@ -173,7 +177,7 @@
     $("lvSizeSub" + pfx).textContent = isGold ? "0.01 lot ≈ 1 oz · Margin ~$" + Math.round(notional / 100) : "≈ $" + Math.round(notional) + " notional · " + lev;
     var m = $("metaLine" + pfx);
     m.style.display = "block";
-    m.innerHTML = "Risk <b>$5.00</b> · Reward TP1 <b>+$5.00</b> · TP2 <b>+$7.50</b> · TP3 <b>+$10.00</b> · Book 50% at TP1, then move SL to entry. · RSI <b>" + t.rsi.toFixed(0) + "</b> · Volume <b>" + t.volRatio.toFixed(2) + "x</b> · Updated <b>" + new Date().toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) + "</b>";
+    m.innerHTML = "Risk <b>$5.00</b> · Reward TP1 <b>+$5.00</b> · TP2 <b>+$7.50</b> · TP3 <b>+$10.00</b> · Book 50% at TP1, then move SL to entry. · RSI <b>" + t.rsi.toFixed(0) + "</b> · Volume <b>" + t.volRatio.toFixed(2) + "x</b>" + (t.source ? " · Source: <b>" + t.source + "</b>" : "") + " · Updated <b>" + new Date().toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) + "</b>";
   }
   function showNoTrade(checked, bestNote, pfx) {
     $("word" + pfx).textContent = "NO TRADE";
@@ -222,13 +226,12 @@
       setStatus("Checking " + done + " / " + total + " coins…");
     }
     var jobs = COINS.map(function (sym) {
-      return getJSON(SAPI + "/klines?symbol=" + sym + "&interval=1h&limit=100", 9000).then(function (k1h) {
-        return getJSON(SAPI + "/klines?symbol=" + sym + "&interval=15m&limit=60", 9000).then(function (k15) {
-          tick();
-          var a = analyze(sym, k1h, k15);
-          if (a && a.dir) results.push(a);
-          return a;
-        });
+      return fetchPair(sym).then(function (res) {
+        tick();
+        var a = analyze(sym, res.k1h, res.k15);
+        if (a) a.source = res.source;
+        if (a && a.dir) results.push(a);
+        return a;
       }).catch(function () { failed++; tick(); return null; });
     });
     Promise.all(jobs).then(function () {
@@ -292,6 +295,16 @@
   function visionKlines(sym, interval, limit) {
     return getJSON(SAPI + "/klines?symbol=" + sym + "&interval=" + interval + "&limit=" + limit, 9000);
   }
+  function bitgetFutKlines(sym, interval, limit) {
+    var g = interval === "15m" ? "15m" : "1H";
+    return getJSON("https://api.bitget.com/api/v2/mix/market/candles?symbol=" + sym + "&granularity=" + g + "&productType=USDT-FUTURES&limit=" + limit, 9000).then(function (j) {
+      var d = (j && j.data) || [];
+      if (!d.length) throw new Error("Bitget futures: no data");
+      var rows = d.map(function (r) { return [parseInt(r[0], 10), r[1], r[2], r[3], r[4], r[5]]; });
+      rows.sort(function (a, b) { return a[0] - b[0]; });
+      return rows;
+    });
+  }
   function bitgetKlines(sym, interval, limit) {
     var g = interval === "15m" ? "15min" : "1h";
     return getJSON("https://api.bitget.com/api/v2/spot/market/candles?symbol=" + sym + "&granularity=" + g + "&limit=" + limit, 9000).then(function (j) {
@@ -312,11 +325,13 @@
       return rows;
     });
   }
-  // Binance first, then Bitget, then Bybit — so futures-only coins like
-  // BLESS (not on Binance spot) still analyze from another exchange.
+  // Binance spot first, then Bitget FUTURES (futures volume is what matters
+  // for a futures trader), then Bitget spot, then Bybit — so futures-only
+  // coins like BLESS (not on Binance spot) still scan and analyze.
   function fetchPair(sym) {
     var sources = [
       {name: "Binance", fn: function (iv) { return visionKlines(sym, iv, 100); }},
+      {name: "Bitget Futures", fn: function (iv) { return bitgetFutKlines(sym, iv, 100); }},
       {name: "Bitget", fn: function (iv) { return bitgetKlines(sym, iv, 100); }},
       {name: "Bybit", fn: function (iv) { return bybitKlines(sym, iv, 100); }}
     ];
@@ -344,6 +359,7 @@
       $("analyzeBtn").disabled = false;
       $("analyzeResult").style.display = "block";
       var a = analyze(sym, res.k1h, res.k15);
+      if (a) a.source = res.source;
       var srcNote = res.source === "Binance" ? "Source: Binance live data." : "Source: " + res.source + " live data — Binance spot does not list " + sym + ", so candles come from " + res.source + ". Price may differ slightly from Binance futures.";
       if (a && a.dir) {
         showTrade(a, "A");
@@ -366,7 +382,7 @@
     });
   }
   function loadTickers() {
-    var syms = COINS.map(function (s) { return '"' + s + '"'; }).join(",");
+    var syms = LIST_COINS.map(function (s) { return '"' + s + '"'; }).join(",");
     getJSON(SAPI + "/ticker/24hr?symbols=" + encodeURIComponent("[" + syms + "]"), 12000).then(function (arr) {
       if (!arr || !arr.length) throw new Error("empty");
       arr.sort(function (a, b) { return parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume); });
