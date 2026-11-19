@@ -113,6 +113,10 @@
       var sl = Math.min(swingLow, price - 1.5 * a);
       if (price - sl < 0.004 * price) sl = price - 1.5 * a;
       if (price - sl > 0.03 * price) sl = price - 0.03 * price;
+      // GOLD (PAXG) intraday cap: 1H ATR on gold is huge (~$55), so 1.5x ATR
+      // makes SL ~$82 and TP3 ~$164 away — almost 2x a normal day's whole
+      // range. Cap gold risk distance at $25: TP1 $25, TP2 $37.50, TP3 $50.
+      if (symbol === "PAXGUSDT" && price - sl > 25) sl = price - 25;
       out.sl = sl; out.r = price - sl;
       return out;
     }
@@ -129,6 +133,8 @@
       var sl2 = Math.max(swingHigh, price + 1.5 * a);
       if (sl2 - price < 0.004 * price) sl2 = price + 1.5 * a;
       if (sl2 - price > 0.03 * price) sl2 = price + 0.03 * price;
+      // GOLD (PAXG) intraday cap — see LONG branch above.
+      if (symbol === "PAXGUSDT" && sl2 - price > 25) sl2 = price + 25;
       out.sl = sl2; out.r = sl2 - price;
       return out;
     }
