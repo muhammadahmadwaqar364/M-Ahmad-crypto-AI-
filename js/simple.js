@@ -148,40 +148,40 @@
   function setStatus(t) { $("statusTxt").textContent = t; }
   function setBar(p) { $("barFill").style.width = p + "%"; }
 
-  function showTrade(t) {
+  function showTrade(t, pfx) {
     var isGold = t.symbol === "PAXGUSDT";
     var name = isGold ? "GOLD (PAXG / XAU)" : t.symbol.replace("USDT", " / USDT");
-    $("word").textContent = t.dir;
-    $("word").className = "word " + t.dir.toLowerCase();
-    $("sym").textContent = name;
-    $("reason").textContent = t.why + " Confidence " + Math.min(92, Math.round(t.score)) + "%.";
-    $("levels").style.display = "grid";
+    $("word" + pfx).textContent = t.dir;
+    $("word" + pfx).className = "word " + t.dir.toLowerCase();
+    $("sym" + pfx).textContent = name;
+    $("reason" + pfx).textContent = t.why + " Confidence " + Math.min(92, Math.round(t.score)) + "%.";
+    $("levels" + pfx).style.display = "grid";
     var entry = t.price, r = t.r;
     var tp1, tp2, tp3;
     if (t.dir === "LONG") { tp1 = entry + r; tp2 = entry + 1.5 * r; tp3 = entry + 2 * r; }
     else { tp1 = entry - r; tp2 = entry - 1.5 * r; tp3 = entry - 2 * r; }
-    $("lvEntry").textContent = fmt(entry);
-    $("lvEntrySub").textContent = isGold ? "XAU price" : "Market price now";
-    $("lvSL").textContent = fmt(t.sl);
-    $("lvTP1").textContent = fmt(tp1);
-    $("lvTP2").textContent = fmt(tp2);
-    $("lvTP3").textContent = fmt(tp3);
+    $("lvEntry" + pfx).textContent = fmt(entry);
+    $("lvEntrySub" + pfx).textContent = isGold ? "XAU price" : "Market price now";
+    $("lvSL" + pfx).textContent = fmt(t.sl);
+    $("lvTP1" + pfx).textContent = fmt(tp1);
+    $("lvTP2" + pfx).textContent = fmt(tp2);
+    $("lvTP3" + pfx).textContent = fmt(tp3);
     var qty = RISK / r;
     var notional = qty * entry;
     var lev = isGold ? "0.01 lot" : (notional > 150 ? "3x" : "5x");
-    $("lvSize").textContent = isGold ? fmtQty(qty) + " oz" : fmtQty(qty) + " " + t.symbol.replace("USDT", "");
-    $("lvSizeSub").textContent = isGold ? "0.01 lot ≈ 1 oz · Margin ~$" + Math.round(notional / 100) : "≈ $" + Math.round(notional) + " notional · " + lev;
-    var m = $("metaLine");
+    $("lvSize" + pfx).textContent = isGold ? fmtQty(qty) + " oz" : fmtQty(qty) + " " + t.symbol.replace("USDT", "");
+    $("lvSizeSub" + pfx).textContent = isGold ? "0.01 lot ≈ 1 oz · Margin ~$" + Math.round(notional / 100) : "≈ $" + Math.round(notional) + " notional · " + lev;
+    var m = $("metaLine" + pfx);
     m.style.display = "block";
     m.innerHTML = "Risk <b>$5.00</b> · Reward TP1 <b>+$5.00</b> · TP2 <b>+$7.50</b> · TP3 <b>+$10.00</b> · Book 50% at TP1, then move SL to entry. · RSI <b>" + t.rsi.toFixed(0) + "</b> · Volume <b>" + t.volRatio.toFixed(2) + "x</b> · Updated <b>" + new Date().toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) + "</b>";
   }
-  function showNoTrade(checked, bestNote) {
-    $("word").textContent = "NO TRADE";
-    $("word").className = "word wait";
-    $("sym").textContent = "No trade right now — wait";
-    $("reason").textContent = bestNote || ("Checked " + checked + " coins + gold. None passed all checks (trend + RSI + volume + 15m confirmation). Waiting is also a trade — next auto-scan in 5 minutes.");
-    $("levels").style.display = "none";
-    $("metaLine").style.display = "none";
+  function showNoTrade(checked, bestNote, pfx) {
+    $("word" + pfx).textContent = "NO TRADE";
+    $("word" + pfx).className = "word wait";
+    $("sym" + pfx).textContent = "No trade right now — wait";
+    $("reason" + pfx).textContent = bestNote || ("Checked " + checked + " coins. None passed all checks (trend + RSI + volume + 15m confirmation). Waiting is also a trade — next auto-scan in 5 minutes.");
+    $("levels" + pfx).style.display = "none";
+    $("metaLine" + pfx).style.display = "none";
   }
   function pushHist(text) {
     var list = $("histList");
@@ -247,16 +247,26 @@
       }
       setLive(true);
       results.sort(function (a, b) { return b.score - a.score; });
-      if (results.length) {
-        var best = results[0];
-        showTrade(best);
-        setStatus("Best trade found · " + results.length + " coin(s) passed all checks · Next auto-scan in 5 min");
-        pushHist(best.symbol.replace("USDT", "") + " " + best.dir + " @ " + fmt(best.price));
+      // Two separate best trades: one crypto, one gold — so a gold signal
+      // never hides crypto, and vice versa.
+      var crypto = results.filter(function (x) { return x.symbol !== "PAXGUSDT"; });
+      var gold = null;
+      for (var gi = 0; gi < results.length; gi++) { if (results[gi].symbol === "PAXGUSDT") { gold = results[gi]; break; } }
+      if (crypto.length) {
+        showTrade(crypto[0], "C");
+        pushHist("Crypto: " + crypto[0].symbol.replace("USDT", "") + " " + crypto[0].dir + " @ " + fmt(crypto[0].price));
       } else {
-        showNoTrade(total);
-        setStatus("No trade — scanned " + total + " coins + gold · Next auto-scan in 5 min");
-        pushHist("NO TRADE — none passed all checks");
+        showNoTrade(total - 1, null, "C");
+        pushHist("Crypto: NO TRADE — none passed all checks");
       }
+      if (gold) {
+        showTrade(gold, "G");
+        pushHist("Gold: " + gold.dir + " @ " + fmt(gold.price));
+      } else {
+        showNoTrade(1, "Gold checked. No setup passed all checks — next auto-scan in 5 minutes.", "G");
+        pushHist("Gold: NO TRADE");
+      }
+      setStatus("Scanned " + total + " coins + gold · " + results.length + " passed all checks · Next auto-scan in 5 min");
     });
   }
 

@@ -61,20 +61,36 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
   <div class="status" id="statusTxt">Tap SCAN NOW. The app checks every coin itself.</div>
   <div class="err" id="errBox"></div>
 
-  <div class="card" id="tradeCard">
-    <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST TRADE NOW</div>
-    <div class="word wait" id="word">—</div>
-    <div class="sym" id="sym">Waiting for scan…</div>
-    <p class="reason" id="reason">One scan checks trend, RSI, volume, support / resistance and BTC + gold context — then shows only the best trade here.</p>
-    <div class="grid" id="levels" style="display:none">
-      <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntry">—</div><div class="s" id="lvEntrySub"></div></div>
-      <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSL">—</div><div class="s">Risk $5.00</div></div>
-      <div class="cell tp"><div class="k">TP1 · +$5.00</div><div class="v" id="lvTP1">—</div><div class="s">Book 50% here</div></div>
-      <div class="cell tp"><div class="k">TP2 · +$7.50</div><div class="v" id="lvTP2">—</div><div class="s">Book 25% here</div></div>
-      <div class="cell tp"><div class="k">TP3 · +$10.00</div><div class="v" id="lvTP3">—</div><div class="s">Book rest here</div></div>
-      <div class="cell"><div class="k">Size</div><div class="v" id="lvSize">—</div><div class="s" id="lvSizeSub"></div></div>
+  <div class="card" id="cryptoCard">
+    <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST CRYPTO TRADE</div>
+    <div class="word wait" id="wordC">—</div>
+    <div class="sym" id="symC">Waiting for scan…</div>
+    <p class="reason" id="reasonC">Scanning 20 crypto coins — the best one that passes all checks appears here.</p>
+    <div class="grid" id="levelsC" style="display:none">
+      <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntryC">—</div><div class="s" id="lvEntrySubC"></div></div>
+      <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSLC">—</div><div class="s">Risk $5.00</div></div>
+      <div class="cell tp"><div class="k">TP1 · +$5.00</div><div class="v" id="lvTP1C">—</div><div class="s">Book 50% here</div></div>
+      <div class="cell tp"><div class="k">TP2 · +$7.50</div><div class="v" id="lvTP2C">—</div><div class="s">Book 25% here</div></div>
+      <div class="cell tp"><div class="k">TP3 · +$10.00</div><div class="v" id="lvTP3C">—</div><div class="s">Book rest here</div></div>
+      <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeC">—</div><div class="s" id="lvSizeSubC"></div></div>
     </div>
-    <div class="meta" id="metaLine" style="display:none"></div>
+    <div class="meta" id="metaLineC" style="display:none"></div>
+  </div>
+
+  <div class="card" id="goldCard">
+    <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST GOLD TRADE</div>
+    <div class="word wait" id="wordG">—</div>
+    <div class="sym" id="symG">Waiting for scan…</div>
+    <p class="reason" id="reasonG">Scanning gold (PAXG / XAU) — its best trade appears here.</p>
+    <div class="grid" id="levelsG" style="display:none">
+      <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntryG">—</div><div class="s" id="lvEntrySubG"></div></div>
+      <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSLG">—</div><div class="s">Risk $5.00</div></div>
+      <div class="cell tp"><div class="k">TP1 · +$5.00</div><div class="v" id="lvTP1G">—</div><div class="s">Book 50% here</div></div>
+      <div class="cell tp"><div class="k">TP2 · +$7.50</div><div class="v" id="lvTP2G">—</div><div class="s">Book 25% here</div></div>
+      <div class="cell tp"><div class="k">TP3 · +$10.00</div><div class="v" id="lvTP3G">—</div><div class="s">Book rest here</div></div>
+      <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeG">—</div><div class="s" id="lvSizeSubG"></div></div>
+    </div>
+    <div class="meta" id="metaLineG" style="display:none"></div>
   </div>
 
   <div class="hist"><h2>Last scans</h2><div id="histList">No scan yet.</div></div>
