@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>M Ahmad Crypto Ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+      * { box-sizing: border-box; }
+      :root{
+        --bg:#07071A; --bg2:#0A0A24; --surface:#12122E; --surface2:#1B1B3D; --chip:#232350;
+        --line:#2A2A5E; --line2:#3D3D78;
+        --ink:#F2F3FF; --ink2:#B9BCD9; --ink3:#7E82A8;
+        --accent:#00E5C7; --accent-dk:#06332C;
+        --purple:#7C4DFF;
+        --long:#16C784; --long-bg:rgba(22,199,132,.14);
+        --short:#F6465D; --short-bg:rgba(246,70,93,.14);
+        --gold:#00E5C7; --gold-bg:rgba(0,229,199,.12);
+        --amber:#FFC24B;
+        --grad:linear-gradient(90deg,#00D5FF,#00E5A5);
+        --shadow:0 10px 30px rgba(0,0,0,.55), 0 0 24px rgba(0,229,199,.06);
+      }
+      html{ -webkit-text-size-adjust:100%; }
+      body{ margin:0; background:var(--bg); background-image:linear-gradient(rgba(124,77,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,199,.04) 1px,transparent 1px); background-size:46px 46px; color:var(--ink); font-family:"Manrope",system-ui,sans-serif; font-size:15.5px; line-height:1.5; padding-bottom:132px; }
+      .mono{ font-family:"IBM Plex Mono",ui-monospace,monospace; }
+      .wrap{ max-width:1280px; margin:0 auto; padding:14px 14px 10px; }
+      h1,h2,h3{ margin:0; line-height:1.25; }
+      p{ margin:0; }
+      button{ font-family:inherit; cursor:pointer; }
+      :focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+      .up{ color:var(--long); } .down{ color:var(--short); }
+      .muted{ color:var(--ink2); } .small{ font-size:.83rem; }
+
+      /* Pages + bottom nav */
+      .page{ display:none; }
+      .page.active{ display:block; }
+      .bottomnav{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(12px + env(safe-area-inset-bottom)); z-index:60; background:rgba(10,10,32,.94); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid var(--line2); border-radius:999px; display:flex; gap:2px; padding:6px; width:max-content; max-width:96vw; box-shadow:0 12px 34px rgba(0,0,0,.6), 0 0 22px rgba(0,229,199,.10); }
+      .bottomnav button{ flex:1; background:transparent; border:0; border-radius:999px; color:var(--ink3); font-size:.62rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 11px 7px; min-height:52px; white-space:nowrap; }
+      .bottomnav button svg{ width:20px; height:20px; }
+      .bottomnav button[aria-pressed="true"]{ color:#04241F; background:var(--grad); }
+      @media (max-width:480px){ .bottomnav button{ padding:8px 7px 7px; font-size:.55rem; } }
+
+      /* Generic cards */
+      .card{ background:linear-gradient(180deg,#141438,#101028); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:inset 0 1px 0 rgba(0,229,199,.08); }
+      .sec-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:24px 2px 11px; flex-wrap:wrap; }
+      .sec-head h2{ font-size:1.02rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }
+      .sec-head h2::before{ content:""; display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:9px; box-shadow:0 0 10px var(--accent); vertical-align:2px; }
+      .sec-head .meta{ color:var(--ink3); font-size:.8rem; font-weight:600; }
+      .grid2{ display:grid; gap:11px; }
+      @media (min-width:760px){ .grid2{ grid-template-columns:1fr 1fr; } }
+      .grid3{ display:grid; gap:11px; grid-template-columns:repeat(2,1fr); }
+      @media (min-width:760px){ .grid3{ grid-template-columns:repeat(3,1fr); } }
+      .stat .k{ font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); }
+      .stat .v{ font-size:1.24rem; font-weight:800; margin-top:3px; }
+      .stat .s{ font-size:.82rem; font-weight:600; color:var(--ink2); margin-top:1px; }
+      .meter{ height:9px; background:var(--surface2); border-radius:99px; overflow:hidden; margin-top:8px; }
+      .meter i{ display:block; height:100%; border-radius:99px; }
+
+      /* Buttons, inputs, segments */
+      .btn{ border-radius:11px; font-weight:800; font-size:.93rem; padding:11px 16px; min-height:46px; border:1px solid var(--line2); background:var(--surface2); color:var(--ink); }
+      .btn.primary{ background:var(--grad); border-color:transparent; color:#04241F; }
+      .btn.gold{ background:var(--grad); border-color:transparent; color:#04241F; box-shadow:0 6px 20px rgba(0,229,199,.25); }
+      .btn:disabled{ opacity:.5; cursor:wait; }
+      .scan-btn{ width:100%; border:0; border-radius:14px; background:var(--grad); color:#04241F; font-size:1.12rem; font-weight:800; padding:16px; min-height:60px; display:flex; align-items:center; justify-content:center; gap:10px; }
+      .scan-btn:disabled{ opacity:.55; cursor:wait; }
+      .scan-btn .dot{ width:11px; height:11px; border-radius:50%; background:#04241F; flex:none; }
+      @media (prefers-reduced-motion: no-preference){ .scan-btn:not(:disabled) .dot{ animation:pulse 1.8s ease-in-out infinite; } @keyframes pulse{ 0%,100%{ transform:scale(1); opacity:1;} 50%{ transform:scale(1.5); opacity:.55;} } }
+      .seg{ display:flex; background:var(--surface2); border:1px solid var(--line); border-radius:12px; padding:4px; gap:4px; flex-wrap:wrap; }
+      .seg button{ flex:1; border:0; background:transparent; color:var(--ink2); font-weight:700; font-size:.88rem; border-radius:9px; padding:9px 6px; min-height:44px; white-space:nowrap; }
+      .seg button[aria-pressed="true"]{ background:var(--chip); color:var(--ink); box-shadow:inset 0 0 0 1.5px var(--accent); }
+      .fld label{ display:block; font-size:.72rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); margin-bottom:6px; }
+      .fld input, .fld select{ width:100%; background:var(--surface2); border:1px solid var(--line); border-radius:11px; padding:12px 13px; font-size:1rem; font-weight:700; color:var(--ink); min-height:50px; font-family:inherit; }
+      .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+      .chip-btn{ border:1px solid var(--line2); background:var(--surface2); color:var(--ink2); font-weight:700; font-size:.85rem; border-radius:99px; padding:8px 14px; min-height:40px; }
+      .chip-btn[aria-pressed="true"]{ background:var(--accent-dk); color:var(--ink); border-color:var(--accent); }
+
+      /* Lists */
+      .mover{ display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; background:none; border:0; border-bottom:1px solid var(--line); color:var(--ink); padding:11px 4px; text-align:left; min-height:52px; }
+      .mover:last-child{ border-bottom:0; }
+      .mover .ms{ font-weight:800; } .mover .mp{ color:var(--ink2); font-weight:600; font-size:.86rem; }
+      .coinrow{ display:grid; grid-template-columns:1fr auto; gap:2px 12px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:13px; color:var(--ink); padding:12px 14px; margin-bottom:9px; text-align:left; min-height:58px; align-items:center; }
+      @media (min-width:760px){ .coinrow{ grid-template-columns:180px 140px 110px 140px 1fr; } }
+      .coinrow .cs{ font-weight:800; font-size:1rem; }
+      .coinrow .cp{ font-weight:600; color:var(--ink2); font-size:.9rem; }
+      .coinrow .cc{ font-weight:700; font-size:.9rem; }
+      .coinrow .cv{ display:none; color:var(--ink2); font-weight:600; font-size:.86rem; }
+      .coinrow .cf{ display:none; color:var(--ink2); font-weight:600; font-size:.86rem; }
+      @media (min-width:760px){ .coinrow .cv, .coinrow .cf{ display:block; } }
+
+      /* Signals */
+      .badge{ display:inline-flex; align-items:center; gap:7px; font-weight:800; font-size:.92rem; padding:9px 14px; border-radius:99px; min-height:40px; white-space:nowrap; }
+      .badge.long{ background:var(--long-bg); color:var(--long); }
+      .badge.short{ background:var(--short-bg); color:var(--short); }
+      .badge.wait{ background:var(--gold-bg); color:var(--gold); }
+      .mini-badge{ font-size:.74rem; font-weight:800; padding:6px 11px; border-radius:99px; white-space:nowrap; }
+      .mini-badge.long{ background:var(--long-bg); color:var(--long); }
+      .mini-badge.short{ background:var(--short-bg); color:var(--short); }
+      .mini-badge.wait{ background:var(--gold-bg); color:var(--gold); }
+      .sig{ background:linear-gradient(180deg,#141438,#0F0F2A); border:1px solid var(--line2); border-radius:18px; overflow:hidden; box-shadow:var(--shadow), inset 0 2px 0 rgba(0,229,199,.30); }
+      .sig-top{ padding:16px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; border-bottom:1px solid var(--line); }
+      .sym{ font-size:1.55rem; font-weight:800; letter-spacing:-.01em; }
+      .sym small{ font-size:.8rem; color:var(--ink3); font-weight:700; }
+      .conf{ min-width:160px; flex:1; max-width:250px; }
+      .conf .lab{ display:flex; justify-content:space-between; font-size:.74rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink3); }
+      .levels{ display:grid; grid-template-columns:repeat(2,1fr); gap:9px; padding:14px 16px 4px; }
+      @media (min-width:760px){ .levels{ grid-template-columns:repeat(4,1fr); } }
+      .lvl{ background:var(--chip); border-radius:11px; padding:11px; }
+      .lvl .k{ font-size:.66rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); }
+      .lvl .v{ font-size:1.02rem; font-weight:700; margin-top:3px; }
+      .lvl .s{ font-size:.75rem; color:var(--ink2); font-weight:600; }
+      .lvl.sl{ box-shadow:inset 0 0 0 1.5px var(--short); }
+      .lvl.tp{ box-shadow:inset 0 0 0 1.5px var(--long); }
+      .chart-box{ padding:8px 16px 2px; }
+      .chart-box svg{ width:100%; height:auto; display:block; }
+      .checks{ padding:12px 16px 16px; }
+      .checks h3{ font-size:.93rem; font-weight:800; margin-bottom:9px; }
+      .checks ul{ list-style:none; margin:0; padding:0; display:grid; gap:7px; }
+      @media (min-width:760px){ .checks ul{ grid-template-columns:1fr 1fr; } }
+      .checks li{ display:flex; gap:9px; align-items:flex-start; background:var(--chip); border-radius:10px; padding:9px 11px; font-size:.88rem; }
+      .checks .ic{ width:21px; height:21px; border-radius:50%; flex:none; display:grid; place-items:center; font-size:.72rem; font-weight:800; margin-top:1px; color:#fff; }
+      .ic.pass{ background:var(--long); } .ic.fail{ background:var(--short); } .ic.na{ background:var(--ink3); }
+      .checks b{ font-weight:800; } .checks .d{ color:var(--ink2); display:block; font-size:.82rem; }
+      .sig-actions{ display:flex; gap:9px; padding:0 16px 16px; flex-wrap:wrap; }
+      .outcome-row{ display:flex; gap:8px; flex-wrap:wrap; padding:0 16px 16px; }
+      .outcome-row .btn{ min-height:44px; padding:9px 13px; font-size:.86rem; }
+      .marked{ padding:0 16px 16px; font-weight:800; }
+
+      /* Progress / error / empty */
+      .progress{ display:none; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px; margin-top:13px; }
+      .progress.on{ display:block; }
+      .bar{ height:10px; background:var(--surface2); border-radius:99px; overflow:hidden; }
+      .bar i{ display:block; height:100%; width:0%; background:var(--accent); border-radius:99px; transition:width .35s ease; }
+      .steps{ list-style:none; margin:13px 0 0; padding:0; display:grid; gap:8px; }
+      .steps li{ display:flex; gap:10px; align-items:flex-start; color:var(--ink3); font-weight:600; font-size:.92rem; }
+      .steps li .st{ width:22px; height:22px; border-radius:50%; border:2px solid var(--line2); flex:none; display:grid; place-items:center; font-size:.7rem; margin-top:1px; }
+      .steps li.doing{ color:var(--ink); } .steps li.doing .st{ border-color:var(--accent); }
+      .steps li.done{ color:var(--ink2); } .steps li.done .st{ background:var(--long); border-color:var(--long); color:#fff; }
+      .error{ display:none; margin-top:13px; background:var(--short-bg); border:1px solid var(--short); border-radius:14px; padding:14px 16px; font-weight:600; }
+      .error.on{ display:block; }
+      .error button{ margin-top:10px; }
+      .empty{ background:var(--surface); border:1.5px dashed var(--line2); border-radius:16px; padding:24px 16px; text-align:center; color:var(--ink2); font-weight:600; }
+      .warnbox{ border:1.5px solid var(--amber); background:rgba(255,194,75,.08); border-radius:14px; padding:14px 16px; }
+      .warnbox h3{ color:var(--amber); font-size:.98rem; font-weight:800; margin-bottom:6px; }
+      .riskbox{ border:1.5px solid var(--short); border-radius:14px; padding:14px 16px; background:var(--surface); }
+      .riskbox h3{ color:var(--short); font-size:.98rem; font-weight:800; margin-bottom:6px; }
+
+      /* Indicator table */
+      .itable{ width:100%; border-collapse:collapse; font-size:.92rem; }
+      .itable td{ padding:9px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+      .itable tr:last-child td{ border-bottom:0; }
+      .itable .ik{ color:var(--ink3); font-weight:800; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; width:38%; }
+      .itable .iv{ font-weight:700; }
+      .itable .id{ color:var(--ink2); font-size:.82rem; display:block; font-weight:600; }
+      .imb{ display:flex; height:12px; border-radius:99px; overflow:hidden; margin-top:8px; }
+      .imb .b{ background:var(--long); } .imb .a{ background:var(--short); }
+
+      /* Mode cards */
+      .mode-card{ width:100%; text-align:left; background:var(--surface); border:1.5px solid var(--line); border-radius:16px; padding:16px; color:var(--ink); }
+      .mode-card[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-dk); }
+      .mode-card h3{ font-size:1.05rem; font-weight:800; }
+      .mode-card ul{ margin:8px 0 0; padding-left:18px; color:var(--ink2); font-size:.9rem; display:grid; gap:4px; }
+      .hist-item{ display:flex; justify-content:space-between; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:8px; flex-wrap:wrap; }
+      .toast{ position:fixed; left:50%; bottom:104px; transform:translateX(-50%) translateY(70px); background:var(--ink); color:var(--bg); font-weight:800; padding:12px 18px; border-radius:12px; opacity:0; visibility:hidden; pointer-events:none; transition:all .3s ease; z-index:80; max-width:92vw; text-align:center; font-size:.92rem; }
+      .toast.on{ transform:translateX(-50%) translateY(0); opacity:1; visibility:visible; }
+      .hidden{ display:none !important; }
+      .pulse-list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+      .pulse-list li{ background:var(--chip); border-radius:10px; padding:10px 12px; font-size:.9rem; color:var(--ink2); }
+      .pulse-list b{ color:var(--ink); }
+      /* All-in-One hero */
+      .hero-search{ background:linear-gradient(180deg,#16163E,#10102A); border:1px solid var(--line2); border-radius:18px; padding:18px 16px; box-shadow:0 0 0 1px rgba(0,229,199,.06), 0 14px 34px rgba(0,0,0,.5); }
+      .hero-search h1{ font-size:1.35rem; font-weight:800; letter-spacing:-.02em; }
+      .hero-row{ display:flex; gap:10px; margin-top:12px; }
+      .hero-row input{ flex:1; background:#1B1B3D; border:1.5px solid var(--line2); border-radius:14px; padding:14px 14px; font-size:1.05rem; font-weight:700; color:var(--ink); min-height:56px; text-transform:uppercase; }
+      .hero-row input::placeholder{ text-transform:none; font-weight:600; color:var(--ink3); }
+      .analyze-btn{ background:var(--grad); color:#04241F; border:0; border-radius:12px; font-weight:900; font-size:1.05rem; padding:0 22px; min-height:56px; letter-spacing:.02em; box-shadow:0 8px 22px rgba(0,229,199,.30); }
+      .scan-all-btn{ width:100%; margin-top:10px; background:var(--grad); color:#04241F; border:0; border-radius:12px; font-weight:900; font-size:1.08rem; padding:16px; min-height:58px; box-shadow:0 8px 22px rgba(0,229,199,.25); }
+      .scan-all-btn:disabled{ opacity:.55; cursor:wait; }
+      .scan-all-btn.alt{ background:#1B1B3D; color:var(--ink); border:1.5px solid var(--line2); box-shadow:none; }
+      .decision-hero{ border-radius:18px; padding:20px 16px; text-align:center; border:1px solid var(--line2); background:linear-gradient(180deg,#151540,#0E0E2A); margin-top:14px; box-shadow:inset 0 2px 0 rgba(0,229,199,.35), 0 14px 34px rgba(0,0,0,.5); }
+      .decision-word{ font-size:3.2rem; line-height:1; font-weight:900; letter-spacing:-.03em; }
+      .decision-word.long{ color:var(--long); } .decision-word.short{ color:var(--short); } .decision-word.wait{ color:var(--ink3); }
+      .buy-sell-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+      .buy-btn{ background:var(--long); color:#fff; border:0; border-radius:10px; font-weight:900; font-size:1.05rem; padding:16px 8px; min-height:56px; }
+      .sell-btn{ background:var(--short); color:#fff; border:0; border-radius:10px; font-weight:900; font-size:1.05rem; padding:16px 8px; min-height:56px; }
+      .buy-btn.dim,.sell-btn.dim{ opacity:.35; }
+      .setup-huge{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      @media(min-width:700px){ .setup-huge{ grid-template-columns:repeat(3,1fr);} }
+      .setup-cell{ background:#0D0D26; border:1px solid var(--line); border-radius:12px; padding:12px; }
+      .setup-cell .k{ font-size:.68rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); }
+      .setup-cell .v{ font-size:1.35rem; font-weight:800; margin-top:4px; }
+      .plain-sec{ background:var(--surface); border:1px solid var(--line); border-radius:14px; margin-bottom:10px; overflow:hidden; }
+      .plain-sec summary{ padding:14px 16px; cursor:pointer; list-style:none; }
+      .plain-sec summary::-webkit-details-marker{ display:none; }
+      .plain-sec .sum-line{ color:var(--ink2); font-size:.92rem; font-weight:600; margin-top:4px; }
+      .market-strip{ display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
+      @media (min-width:760px){ .market-strip{ grid-template-columns:repeat(3,1fr); } }
+      @media (min-width:1024px){ .market-strip{ grid-template-columns:repeat(6,1fr); } }
+      .m-pill{ background:linear-gradient(180deg,#141438,#0F0F2A); border:1px solid var(--line); border-radius:14px; padding:11px 13px; font-size:.76rem; font-weight:700; letter-spacing:.04em; color:var(--ink3); display:flex; flex-direction:column; gap:2px; min-width:0; overflow:hidden; }
+      .m-pill .mono{ color:var(--accent); font-size:1.05rem; font-weight:700; letter-spacing:0; }
+      .m-pill .mono.up{ color:var(--long); } .m-pill .mono.down{ color:var(--short); }
+      .pct-pill{ display:inline-block; padding:4px 8px; border-radius:6px; font-weight:800; font-size:.85rem; }
+      .pct-pill.up{ background:var(--long-bg); color:var(--long); } .pct-pill.down{ background:var(--short-bg); color:var(--short); }
+      /* Tradebise-style dashboard pieces */
+      .tb-banner{ background:linear-gradient(90deg,#5B21B6,#7C4DFF 55%,#0090B8); color:#fff; border-radius:14px; padding:11px 16px; font-weight:700; font-size:.9rem; display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px; box-shadow:0 8px 24px rgba(124,77,255,.35); }
+      .tb-banner .live-tag{ flex:none; display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:5px 11px; font-size:.72rem; font-weight:800; letter-spacing:.08em; }
+      .tb-banner .live-tag i{ width:8px; height:8px; border-radius:50%; background:var(--amber); display:block; }
+      .tb-banner .live-tag.on i{ background:#00E5A5; }
+      .tb-banner .live-tag.off i{ background:var(--short); }
+      .live-pill.off{ background:var(--short-bg); color:var(--short); }
+      .live-pill.off i{ background:var(--short); }
+      @media (prefers-reduced-motion: no-preference){ .tb-banner .live-tag i{ animation:pulse 1.8s ease-in-out infinite; } }
+      .tb-tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+      .tb-tab{ display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line2); background:var(--surface2); color:var(--ink2); font-weight:800; font-size:.86rem; border-radius:999px; padding:9px 16px; min-height:42px; }
+      .tb-tab svg{ width:15px; height:15px; flex:none; }
+      .tb-tab[aria-pressed="true"]{ border-color:var(--accent); color:var(--accent); background:rgba(0,229,199,.08); box-shadow:0 0 14px rgba(0,229,199,.15); }
+      .tb-tab.gold-tab{ border-color:rgba(255,194,75,.55); color:var(--amber); }
+      .seg button .tf-sub{ display:block; font-size:.64rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--ink3); margin-top:1px; }
+      .seg button[aria-pressed="true"] .tf-sub{ color:var(--accent); }
+      .live-pill{ display:inline-flex; align-items:center; gap:6px; background:var(--long-bg); color:var(--long); border-radius:999px; padding:5px 11px; font-size:.74rem; font-weight:800; }
+      .live-pill i{ width:8px; height:8px; border-radius:50%; background:var(--long); display:block; }
+      .coinrow{ background:linear-gradient(180deg,#141438,#101028); }
+      .mover{ border-bottom-color:var(--line); }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+
+      <!-- ============ HOME — ALL-IN-ONE ============ -->
+      <section class="page active" id="page-dashboard">
+        <div class="tb-banner"><span>AI Trading Signals for Crypto &amp; Gold — Entry, Targets &amp; Stop-Loss from live market data</span><span class="live-tag" id="tbLiveTag"><i></i><span id="tbLiveTxt">CONNECTING</span></span></div>
+        <!-- Market strip (live) -->
+        <div class="market-strip" aria-label="Market overview">
+          <span class="m-pill">BTC <span class="mono" id="ovBtcPrice">—</span> <span class="mono" id="ovBtcChg">Loading…</span></span>
+          <span class="m-pill">Dominance <span class="mono" id="ovDom">—</span></span>
+          <span class="m-pill">Market Cap <span class="mono" id="ovMcap">—</span> <span class="mono" id="ovMcapChg"></span></span>
+          <span class="m-pill">Fear &amp; Greed <span class="mono" id="ovFng">—</span> · <span id="ovFngLabel">—</span></span>
+          <span class="m-pill"><span id="ovBreadth">—</span> · <span id="ovBreadthSub">coins green</span></span>
+          <span class="m-pill"><span id="ovSrc">Binance API</span> · <span id="ovUpdated">Loading…</span></span>
+        </div>
+        <div style="display:none;"><span id="ovDomSub"></span><span id="ovFngBar"></span></div>
+        <div id="loadStatus" class="small" style="margin-top:10px; font-weight:700; color:var(--ink2); display:none;">Loading…</div>
+        <div class="error" id="dashError"><span id="dashErrorTxt"></span><div id="dashSourceResults" style="margin-top:10px;"></div><br /><button type="button" class="btn" id="dashRetry">Retry</button></div>
+
+        <div class="card" style="margin-top:12px; padding:14px 16px;">
+          <p style="font-weight:700;" id="marketSummaryText">Loading live market… BTC trend, dominance, Fear &amp; Greed and how many coins are green will appear here in plain words.</p>
+          <p class="small muted" style="margin-top:6px; font-weight:600;">Trade only when the decision below says LONG or SHORT with enough confirmations. NO TRADE means wait — that is also a decision.</p>
+        </div>
+
+        <!-- Tradebise-style market tabs -->
+        <div class="tb-tabs" style="margin-top:12px;" role="group" aria-label="Market tabs">
+          <button type="button" class="tb-tab" data-tbtab="trending" aria-pressed="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-4 5.5-4 9a4.5 4.5 0 009 0c0-1.5-.5-2.5-1.2-3.7-.9 1-1.6 1.4-2.3 1.7C13.8 6.5 13.5 4 12 2zM12 22a6.5 6.5 0 01-6.5-6.5c0-.6.07-1.2.2-1.7C7 17.5 9.3 18 12 18s5-.5 6.3-2.2c.13.5.2 1.1.2 1.7A6.5 6.5 0 0112 22z" opacity=".95"/></svg>Trending</button>
+          <button type="button" class="tb-tab" data-tbtab="gainers" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Top Gainers</button>
+          <button type="button" class="tb-tab" data-tbtab="losers" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>Top Losers</button>
+          <button type="button" class="tb-tab gold-tab" data-tbtab="gold" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>Gold (PAXG)</button>
+        </div>
+
+        <!-- 1. Search + Analyze -->
+        <div class="hero-search" style="margin-top:12px;" id="homeTop">
+          <h1>Analyze any coin</h1>
+          <p class="muted small" style="margin-top:4px; font-weight:600;">Type a coin, tap ANALYZE — the full decision, setup and 30-part analysis appear right here on this page.</p>
+          <div class="hero-row">
+            <input type="text" id="homeCoinInput" placeholder="Search any coin — e.g. BTC, SOL, HUMA, BLESS" autocomplete="off" aria-label="Search any coin" />
+            <button type="button" class="analyze-btn" id="homeAnalyzeBtn">ANALYZE</button>
+          </div>
+          <div class="chips" style="margin-top:10px;" id="homeQuick">
+            <button type="button" class="chip-btn" data-sym="BTCUSDT">BTC</button>
+            <button type="button" class="chip-btn" data-sym="ETHUSDT">ETH</button>
+            <button type="button" class="chip-btn" data-sym="SOLUSDT">SOL</button>
+            <button type="button" class="chip-btn" data-sym="BNBUSDT">BNB</button>
+            <button type="button" class="chip-btn" data-sym="XRPUSDT">XRP</button>
+            <button type="button" class="chip-btn" data-sym="DOGEUSDT">DOGE</button>
+          </div>
+          <!-- 2. Scan all -->
+          <button type="button" class="scan-all-btn" id="scanBtn"><span id="scanBtnTxt">SCAN ALL COINS</span></button>
+          <p class="small muted" style="text-align:center; margin-top:8px; font-weight:600;">Scans all live USDT pairs and shows the top signals below — no tab change.</p>
+          <p class="small muted" style="text-align:center; font-weight:600;" id="modeSummary"></p>
+        </div>
+
+        <div class="progress" id="progressBox" aria-live="polite">
+          <div class="bar"><i id="barFill"></i></div>
+          <ul class="steps">
+            <li id="st1"><span class="st">1</span><span id="step1Label">Fetching live prices…</span></li>
+            <li id="st2"><span class="st">2</span><span>Filtering high-volume futures pairs…</span></li>
+            <li id="st3"><span class="st">3</span><span>Deep-analyzing each coin — trend, RSI, MACD, volume, funding, OI… <span class="mono" id="coinCounter"></span></span></li>
+            <li id="st4"><span class="st">4</span><span>Building the best setups from all confirmations…</span></li>
+          </ul>
+        </div>
+        <div class="error" id="errorBox" role="alert"><span id="errorTxt"></span><br /><button type="button" class="btn" id="retryBtn">Scan Again</button></div>
+
+        <!-- 3a. Decision hero -->
+        <div id="decisionArea">
+          <div class="decision-hero" id="decisionHero">
+            <div class="small" style="font-weight:800; letter-spacing:.08em; color:var(--ink3);">FINAL DECISION</div>
+            <div class="decision-word wait" id="decisionWord">—</div>
+            <p id="decisionLine" class="muted" style="font-weight:700; margin-top:8px;">Search a coin above and tap ANALYZE, or tap SCAN ALL COINS. Your decision will appear here in large text.</p>
+            <div class="buy-sell-row">
+              <button type="button" class="buy-btn dim" id="buyLongBtn">BUY / LONG</button>
+              <button type="button" class="sell-btn dim" id="sellShortBtn">SELL / SHORT</button>
+            </div>
+            <p class="small muted" style="margin-top:8px; font-weight:600;">These buttons highlight the recommended side. You place the trade yourself in the Binance app using the Entry, Stop Loss and Targets below.</p>
+          </div>
+        </div>
+
+        <!-- Analysis on home (moved from Analysis tab) -->
+        <div id="homeAnalysisAnchor"></div>
+        <div class="card" style="margin-top:14px;">
+          <h2 style="font-size:1.05rem; font-weight:800;">Coin Analysis — on this page</h2>
+          <p class="muted small" style="margin-top:4px; font-weight:600;">Same analyzer as the search above. Change timeframe to recalculate the chart and indicators.</p>
+          <div style="display:flex; gap:9px; flex-wrap:wrap; margin-top:12px; align-items:flex-end;">
+            <div class="fld" style="flex:1; min-width:150px;"><label for="anSymbol">Coin symbol (USDT pair)</label><input type="text" id="anSymbol" class="mono" value="BTCUSDT" autocomplete="off" style="text-transform:uppercase;" /></div>
+            <button type="button" class="btn gold" id="anLoadBtn" style="min-height:50px; font-weight:900;">Analyze Coin</button>
+          </div>
+          <div class="chips" id="anQuick" style="margin-top:11px;"></div>
+          <div style="margin-top:13px;">
+            <div class="fld"><label>Chart timeframe — all indicators recalculate</label></div>
+            <div class="seg" id="anTfSeg" role="group" aria-label="Timeframe">
+              <button type="button" data-tf="5m" aria-pressed="false">5m<span class="tf-sub">Scalp</span></button>
+              <button type="button" data-tf="15m" aria-pressed="false">15m<span class="tf-sub">Scalp</span></button>
+              <button type="button" data-tf="1h" aria-pressed="true">1H<span class="tf-sub">Intraday</span></button>
+              <button type="button" data-tf="4h" aria-pressed="false">4H<span class="tf-sub">Swing</span></button>
+              <button type="button" data-tf="1d" aria-pressed="false">1D<span class="tf-sub">Long</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="error" id="anError"><span id="anErrorTxt"></span></div>
+        <div id="anHead" style="margin-top:14px;"></div>
+        <div class="card chart-box" id="anChartCard" style="margin-top:12px;"><div id="anChart"><p class="muted small">Search a coin above to load its chart and full analysis here.</p></div>
+        <p class="small" style="color:var(--ink3); font-weight:600; padding:0 2px 8px;">Line: price · Blue: EMA 20 · Yellow: EMA 50 · Grey band: Bollinger Bands (20, 2σ)</p></div>
+        <div id="anSections" style="margin-top:14px;"></div>
+
+        <!-- Scan results on home -->
+        <div id="homeSignalsAnchor"></div>
+        <div class="card" style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+          <div><h2 style="font-size:1.05rem; font-weight:800;">Available Trades Now — Top Signals <span class="live-pill" id="sigLivePill"><i></i><span id="sigLiveTxt">Connecting</span></span></h2><p class="muted small" id="sigSummary" style="margin-top:3px; font-weight:600;"></p></div>
+          <button type="button" class="btn gold" id="sigScanBtn" style="min-height:52px; font-weight:900;">Run AI Scan</button>
+        </div>
+        <div id="bestWrap" class="hidden">
+          <div class="sec-head"><h2>Best Signal</h2><span class="meta" id="bestMeta"></span></div>
+          <div class="sig" id="bestCard"></div>
+        </div>
+        <div id="signalsWrap" class="hidden">
+          <div class="sec-head"><h2>All Scanned Coins</h2><span class="meta" id="signalsMeta"></span></div>
+          <div id="signalsList"></div>
+        </div>
+        <div class="empty" id="signalsEmpty" style="margin-top:14px;">No scan yet. Tap SCAN ALL COINS above — top signals with Entry, Stop Loss, TP1 / TP2 / TP3 will appear right here.</div>
+
+        <!-- Settings quick row on home -->
+        <div class="sec-head"><h2>Your Setup — Capital &amp; Mode</h2><span class="meta">Full controls in Settings tab</span></div>
+        <div class="card">
+          <p class="small muted" style="font-weight:700;" id="homeSetupLine">Capital $200 · Safe mode · Risk 1% per trade</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+            <button type="button" class="btn" id="homeModeSafe">Safe — $2–$6 / day</button>
+            <button type="button" class="btn" id="homeModeAgg">Aggressive — $10–$15 / day</button>
+            <button type="button" class="btn" id="homeGoSettings">Open Full Settings</button>
+          </div>
+          <p class="small muted" style="margin-top:8px; font-weight:600;">Safe: 1% risk, max 5x, 65%+ confidence. Aggressive: ~2.5% risk, max 10x, 75%+ confidence, max 2–3 trades/day. $10–$15/day on $200 is high risk and not guaranteed.</p>
+        </div>
+
+        <!-- Daily tracker on home -->
+        <div class="sec-head"><h2>Daily Target Tracker</h2><span class="meta" id="trkMode">Safe mode</span></div>
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:baseline;">
+            <div><span class="small muted" style="font-weight:800; letter-spacing:.06em;">PROFIT / LOSS TODAY</span><div class="mono" id="trkPnl" style="font-size:1.7rem; font-weight:800;">$0.00</div></div>
+            <div style="text-align:right;"><div class="small muted" style="font-weight:700;">Target</div><div class="mono" id="trkTargetTxt" style="font-weight:800;">$2 – $6</div></div>
+          </div>
+          <div class="meter" style="height:12px;"><i id="trkTargetBar" style="width:0%; background:var(--long);"></i></div>
+          <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:12px;">
+            <div><span class="small muted" style="font-weight:700;">Trades taken</span><div class="mono" id="trkTrades" style="font-weight:800; font-size:1.05rem;">0</div></div>
+            <div><span class="small muted" style="font-weight:700;">Win rate today</span><div class="mono" id="trkWinRate" style="font-weight:800; font-size:1.05rem;">—</div></div>
+            <div><span class="small muted" style="font-weight:700;">Wins / Losses</span><div class="mono" id="trkWL" style="font-weight:800; font-size:1.05rem;">0 / 0</div></div>
+          </div>
+          <p class="small muted" id="trkLimitNote" style="margin-top:10px; font-weight:600;"></p>
+          <div style="display:flex; gap:9px; flex-wrap:wrap; margin-top:12px; align-items:flex-end;">
+            <div class="fld" style="flex:1; min-width:130px;"><label for="trkAmt">Trade result ($)</label><input type="number" id="trkAmt" class="mono" placeholder="e.g. 5.00" step="0.5" min="0" inputmode="decimal" /></div>
+            <button type="button" class="btn" id="trkWinBtn" style="background:var(--long-bg); color:var(--long); border-color:var(--long);">+ Win</button>
+            <button type="button" class="btn" id="trkLossBtn" style="background:var(--short-bg); color:var(--short); border-color:var(--short);">− Loss</button>
+          </div>
+          <div id="trkEntries" style="margin-top:12px;"></div>
+          <p class="small" style="color:var(--ink3); margin-top:8px;">Tracker is for this session — it resets when the page is reloaded.</p>
+        </div>
+
+        <div class="sec-head"><h2>Signal History</h2><span class="meta">This session</span></div>
+        <div id="histList"></div>
+        <div class="empty" id="histEmpty">No signals recorded yet. Tradeable signals from your scans are saved here so you can mark TP / SL outcomes.</div>
+
+        <div class="sec-head"><h2>Top Movers</h2><span class="meta">Tap any coin to analyze it here</span></div>
+        <div class="grid2">
+          <div class="card" id="gainersCard"><h3 style="color:var(--long); font-size:.98rem; margin-bottom:6px;">Top Gainers (24h)</h3><div id="gainersList"><p class="muted small">Loading…</p></div></div>
+          <div class="card" id="losersCard"><h3 style="color:var(--short); font-size:.98rem; margin-bottom:6px;">Top Losers (24h)</h3><div id="losersList"><p class="muted small">Loading…</p></div></div>
+        </div>
+
+        <div class="sec-head"><h2>All Coins — Binance Style</h2><span class="meta" id="scannerMeta">Loading live prices…</span></div>
+        <div class="fld" style="margin-bottom:10px;"><label for="coinSearch">Search coin in list</label><input type="text" id="coinSearch" placeholder="e.g. SOL, HUMA, PEPE…" autocomplete="off" /></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+          <div class="seg" id="sortSeg" role="group" aria-label="Sort coins" style="flex:1; min-width:230px;">
+            <button type="button" data-sort="volume" aria-pressed="true">Volume</button>
+            <button type="button" data-sort="gainers" aria-pressed="false">Gainers</button>
+            <button type="button" data-sort="losers" aria-pressed="false">Losers</button>
+            <button type="button" data-sort="az" aria-pressed="false">A–Z</button>
+          </div>
+          <div class="chips" id="filterChips">
+            <button type="button" class="chip-btn" data-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="chip-btn" data-filter="green" aria-pressed="false">Green 24h</button>
+            <button type="button" class="chip-btn" data-filter="red" aria-pressed="false">Red 24h</button>
+          </div>
+        </div>
+        <div id="coinList"><div class="empty">Loading live futures prices…</div></div>
+
+        <div class="sec-head"><h2>News &amp; Market Pulse</h2><span class="meta">Live data only</span></div>
+        <div class="grid2">
+          <div class="card"><h3 style="font-size:.98rem; margin-bottom:10px;">Market Pulse (from live data)</h3><ul class="pulse-list" id="pulseList"><li>Loading market data…</li></ul></div>
+          <div class="card"><h3 style="font-size:.98rem; margin-bottom:10px;">Trending Coins (CoinGecko)</h3><div class="chips" id="trendingRow"><span class="muted small">Loading…</span></div>
+          <h3 style="font-size:.98rem; margin:14px 0 8px;">Coin News</h3><p class="muted small" id="newsBox">Checking for a verified live news source…</p></div>
+        </div>
+      </section>
+
+      <!-- ============ SCANNER (secondary — main scanner is on Home) ============ -->
+      <section class="page" id="page-scanner">
+        <div class="card"><h2 style="font-size:1.15rem; font-weight:800;">Scanner lives on Home</h2><p class="muted" style="margin-top:6px;">The full scanner is now on the Home page — one tap on SCAN ALL COINS there scans all pairs and shows top signals on the same page. Use the button below to go there.</p><button type="button" class="btn gold" id="goHomeFromScanner" style="margin-top:12px; width:100%;">Go to Home — SCAN ALL COINS</button></div>
+      </section>
+
+      <!-- ============ AI SIGNALS (secondary) ============ -->
+      <section class="page" id="page-signals">
+        <div class="card"><h2 style="font-size:1.15rem; font-weight:800;">Signals live on Home</h2><p class="muted" style="margin-top:6px;">After you ANALYZE or SCAN on Home, the decision, BUY LONG / SELL SHORT highlight, trade setup and history all appear on Home. Nothing is hidden in another tab anymore.</p><button type="button" class="btn gold" id="goHomeFromSignals" style="margin-top:12px; width:100%;">Go to Home</button></div>
+      </section>
+
+      <!-- ============ ANALYSIS (secondary) ============ -->
+      <section class="page" id="page-analysis">
+        <div class="card"><h2 style="font-size:1.15rem; font-weight:800;">Analysis lives on Home</h2><p class="muted" style="margin-top:6px;">Search any coin on Home and the complete analysis — trend, timeframes, indicators, support/resistance, volume, whales, funding, order book, liquidity, SMC, BTC &amp; market, news, volatility and the 30-part checklist — opens on that same page.</p><button type="button" class="btn gold" id="goHomeFromAnalysis" style="margin-top:12px; width:100%;">Go to Home — Analyze a Coin</button></div>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section class="page" id="page-settings">
+        <div class="sec-head" style="margin-top:4px;"><h2>Capital &amp; Daily Target</h2></div>
+        <div class="fld" style="max-width:320px;"><label for="setCapital">Account capital (USDT)</label><input type="number" id="setCapital" class="mono" value="200" min="10" step="10" inputmode="decimal" /></div>
+
+        <div class="grid2" style="margin-top:14px;">
+          <button type="button" class="mode-card" id="modeSafe" aria-pressed="true">
+            <h3>Safe Mode</h3>
+            <ul>
+              <li>Daily target: <b>$2 – $6</b> (1–3% of $200)</li>
+              <li>Risk per trade: <b>1%</b> of capital ($2 on $200)</li>
+              <li>Max leverage: <b>5x</b></li>
+              <li>Signals need 65%+ confidence and 7+ confirmations</li>
+              <li>Slower, steadier — built to protect the account first</li>
+            </ul>
+          </button>
+          <button type="button" class="mode-card" id="modeAgg" aria-pressed="false">
+            <h3>Aggressive Mode — $10–$15/day</h3>
+            <ul>
+              <li>Daily target: <b>$10 – $15</b> (5–7.5% of $200)</li>
+              <li>Risk per trade: <b>~2.5%</b> of capital ($5 on $200)</li>
+              <li>Risk : Reward <b>1 : 2</b>, max <b>2–3 trades per day</b></li>
+              <li>Max leverage: <b>10x</b> · only <b>75%+ confidence</b> signals recommended</li>
+            </ul>
+          </button>
+        </div>
+        <div class="warnbox" id="aggWarn" style="margin-top:12px;">
+          <h3>Honest warning — read before choosing Aggressive</h3>
+          <p class="small" style="color:var(--ink2); font-weight:600;">$10–$15 per day on a $200 account is a <b style="color:var(--ink);">high-risk target — it is NOT guaranteed</b>, and most traders who chase it lose money. At 2.5% risk, one losing trade costs about <b style="color:var(--ink);">−$5</b>, and a bad day can lose <b style="color:var(--ink);">−$5 to −$7.50 or more</b>. Two or three losing days in a row can cut the account by 10%+. The scanner only reduces guesswork — it cannot remove market risk. If the daily limit of 3 trades is reached, stop for the day.</p>
+        </div>
+
+        <div class="sec-head"><h2>Data Source</h2></div>
+        <div class="card">
+          <p class="small muted" style="font-weight:600;">Choose which source is tried first. Auto tries, in order: Binance Futures (briefly), CoinGecko, Binance Spot (Vision), CoinPaprika, OKX, Bitget, Gate.io, Bybit — and if every direct connection fails in this browser, the same live data is fetched through public relays (AllOrigins, CodeTabs, Cors.lol), whose servers make the request for you. Whichever source works is labeled at the top of the Dashboard. No VPN is needed.</p>
+          <div class="seg" id="dataSourceSeg" role="group" aria-label="Data source" style="margin-top:12px;">
+            <button type="button" data-source="auto" aria-pressed="true">Auto</button>
+            <button type="button" data-source="futures" aria-pressed="false">Binance Futures</button>
+            <button type="button" data-source="spot" aria-pressed="false">Binance Spot (Vision)</button>
+            <button type="button" data-source="coingecko" aria-pressed="false">CoinGecko</button>
+          </div>
+          <p class="small" id="dataSourceNote" style="margin-top:10px; font-weight:700;">Active source: — · Last updated: —</p>
+        </div>
+
+        <div class="sec-head"><h2>Diagnostics</h2></div>
+        <div class="card">
+          <p class="small muted" style="font-weight:600;">Test every data endpoint from this phone / network — the direct exchanges (including Bitget and Bybit) plus the public relays. This shows exactly which connections this browser blocks and which ones work.</p>
+          <p class="small" style="margin-top:8px; font-weight:700; background:var(--chip); border-radius:9px; padding:9px 11px;">Binance app working but web API blocked is normal — the Binance app uses its own connection, while this web dashboard's browser fetch to Binance Futures can be blocked (often HTTP 451 / Failed to fetch) even on the same WiFi. That is why the app uses CoinGecko / Binance Vision as fallback — prices are still live, and you do not need a VPN.</p>
+          <button type="button" class="btn primary" id="testConnBtn" style="margin-top:12px; min-height:50px;">Test Connection</button>
+          <div id="diagResults" style="margin-top:12px;"><p class="muted small">Not tested yet — tap Test Connection.</p></div>
+          <p class="small" id="diagAdvice" style="margin-top:10px; font-weight:600;"></p>
+          <p class="small" id="diagActive" style="margin-top:10px; font-weight:700;">Currently active data source: — · Last updated: —</p>
+        </div>
+
+        <div class="sec-head"><h2>Risk Controls</h2></div>
+        <div class="grid2">
+          <div class="fld"><label for="setRisk">Risk per trade (%)</label><input type="number" id="setRisk" class="mono" value="1" min="0.25" max="5" step="0.25" inputmode="decimal" /></div>
+          <div class="fld"><label for="setLev">Max leverage (x)</label><input type="number" id="setLev" class="mono" value="5" min="1" max="20" step="1" inputmode="numeric" /></div>
+        </div>
+        <p class="small muted" style="margin-top:8px; font-weight:600;" id="settingsNote"></p>
+
+        <div class="sec-head"><h2>Position Size Calculator</h2></div>
+        <div class="card">
+          <div class="grid2">
+            <div class="fld"><label for="calcEntry">Entry price (USDT)</label><input type="number" id="calcEntry" class="mono" placeholder="e.g. 0.00829" step="any" min="0" inputmode="decimal" /></div>
+            <div class="fld"><label for="calcSL">Stop loss price (USDT)</label><input type="number" id="calcSL" class="mono" placeholder="e.g. 0.00790" step="any" min="0" inputmode="decimal" /></div>
+          </div>
+          <div class="seg" id="calcDirSeg" role="group" aria-label="Direction" style="margin-top:12px; max-width:320px;">
+            <button type="button" data-dir="LONG" aria-pressed="true">LONG</button>
+            <button type="button" data-dir="SHORT" aria-pressed="false">SHORT</button>
+          </div>
+          <div id="calcOut" style="margin-top:14px;"><p class="muted small">Enter an entry and stop loss — quantity, position size, margin and maximum loss are calculated from your capital and risk settings above.</p></div>
+        </div>
+
+        <div class="sec-head"><h2>How Signals Are Decided</h2></div>
+        <div class="card">
+          <ul style="margin:0; padding-left:19px; display:grid; gap:7px; color:var(--ink2); font-size:.93rem;">
+            <li>Every candidate is scored on trend (EMA 20/50/200 across 15m, 1H, 4H), RSI, MACD, volume, support/resistance, ATR, funding rate, open interest change, long/short ratios, BTC context, liquidity pools and risk:reward.</li>
+            <li>A LONG or SHORT signal needs <b style="color:var(--ink);">at least 7 confirmations</b> plus the confidence threshold for your mode — otherwise the result is <b style="color:var(--ink);">NO TRADE</b> with the reason shown.</li>
+            <li>Stop loss comes from the recent swing and ATR; targets are set at fixed R multiples (TP1 / TP2 / TP3), capped by the nearest support/resistance wall.</li>
+            <li>Data is fetched live on your device. The app tries Binance Futures briefly, then CoinGecko, Binance Spot (data-api.binance.vision), CoinPaprika, OKX, Bitget, Gate.io and Bybit, and finally the same data through public relays, and clearly labels the active source (for example "Bitget · Live"). Prices may differ a fraction between exchanges — always confirm the exact price on Binance before entering. The Binance app working does not mean the web Futures API will work in a browser — the fallback chain exists for exactly that case, with no VPN needed. No price is ever invented — if every source and relay fails, you get an error with per-source results, not a made-up number.</li>
+          </ul>
+        </div>
+        <div class="riskbox" style="margin-top:12px;">
+          <h3>Risk Disclaimer</h3>
+          <p class="small" style="color:var(--ink2); font-weight:600;">This app provides market analysis and trade setups only — it is not financial advice and it never guarantees profit. Leveraged futures can liquidate your entire margin, especially in small altcoins. Always use a stop loss, risk only what your settings allow per trade, and confirm the live price on Binance before entering. The app never trades for you.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Bottom navigation -->
+    <nav class="bottomnav" aria-label="Main">
+      <button type="button" data-page="dashboard" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>Home</button>
+      <button type="button" data-page="scanner" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>Scanner</button>
+      <button type="button" data-page="signals" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg>AI Signals</button>
+      <button type="button" data-page="analysis" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>Analysis</button>
+      <button type="button" data-page="settings" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06A1.7 1.7 0 0015 19.4a1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09A1.7 1.7 0 009 19.4a1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.6 15a1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 009 4.6a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.51 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 9c.24.6.86 1 1.51 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1z"/></svg>Settings</button>
+    </nav>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script src="js/app1.js"></script>
+    <script src="js/app2.js"></script>
+    <script src="js/app3.js"></script>
+  </body>
+</html>
