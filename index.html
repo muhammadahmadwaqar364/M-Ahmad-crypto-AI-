@@ -45,6 +45,14 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 .progress{height:8px;background:#1b1b3d;border-radius:99px;overflow:hidden;margin-top:14px}
 .progress i{display:block;height:100%;width:0%;background:var(--acc);transition:width .3s}
 .status{font-size:.85rem;color:var(--mut);font-weight:700;margin-top:8px;text-align:center}
+.analyze-row{display:flex;gap:10px;margin-top:12px}
+.analyze-row input{flex:1;background:#1b1b3d;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-size:1rem;font-weight:700;color:var(--ink);min-height:52px;text-transform:uppercase}
+.analyze-btn{background:linear-gradient(90deg,#00d5ff,#00e5a5);color:#04241f;border:0;border-radius:12px;font-weight:900;font-size:1rem;padding:0 18px;min-height:52px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip-btn{border:1px solid var(--line);background:#1b1b3d;color:var(--mut);font-weight:700;font-size:.85rem;border-radius:99px;padding:8px 14px;min-height:38px}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);padding:10px 2px;text-align:left;font-weight:700}
+.crow:last-child{border-bottom:0}
+.crow .cp{color:var(--mut);font-weight:600;font-size:.88rem}
 </style>
 </head>
 <body>
@@ -60,6 +68,41 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
   <div class="progress"><i id="barFill"></i></div>
   <div class="status" id="statusTxt">Tap SCAN NOW. The app checks every coin itself.</div>
   <div class="err" id="errBox"></div>
+
+  <div class="card" style="text-align:left" id="analyzeCard">
+    <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">ANALYZE ANY COIN — BINANCE</div>
+    <div class="analyze-row">
+      <input type="text" id="coinInput" placeholder="e.g. BLESS, HUMA, SOL" autocomplete="off" aria-label="Coin to analyze" />
+      <button type="button" class="analyze-btn" id="analyzeBtn">ANALYZE</button>
+    </div>
+    <div class="chips" id="quickChips">
+      <button type="button" class="chip-btn" data-sym="BTCUSDT">BTC</button>
+      <button type="button" class="chip-btn" data-sym="ETHUSDT">ETH</button>
+      <button type="button" class="chip-btn" data-sym="SOLUSDT">SOL</button>
+      <button type="button" class="chip-btn" data-sym="BLESSUSDT">BLESS</button>
+      <button type="button" class="chip-btn" data-sym="HUMAUSDT">HUMA</button>
+      <button type="button" class="chip-btn" data-sym="SENTUSDT">SENT</button>
+      <button type="button" class="chip-btn" data-sym="MMTUSDT">MMT</button>
+      <button type="button" class="chip-btn" data-sym="LUNCUSDT">LUNC</button>
+    </div>
+    <p class="small" id="analyzeStatus" style="color:var(--mut);font-weight:600;margin-top:10px;">Type any coin and tap ANALYZE — trend, RSI, volume and 15m confirmation are checked live.</p>
+    <div id="analyzeResult" style="display:none;text-align:center">
+      <div class="word wait" id="wordA">—</div>
+      <div class="sym" id="symA">—</div>
+      <p class="reason" id="reasonA"></p>
+      <div class="grid" id="levelsA" style="display:none">
+        <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntryA">—</div><div class="s" id="lvEntrySubA"></div></div>
+        <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSLA">—</div><div class="s">Risk $5.00</div></div>
+        <div class="cell tp"><div class="k">TP1 · +$5.00</div><div class="v" id="lvTP1A">—</div><div class="s">Book 50% here</div></div>
+        <div class="cell tp"><div class="k">TP2 · +$7.50</div><div class="v" id="lvTP2A">—</div><div class="s">Book 25% here</div></div>
+        <div class="cell tp"><div class="k">TP3 · +$10.00</div><div class="v" id="lvTP3A">—</div><div class="s">Book rest here</div></div>
+        <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeA">—</div><div class="s" id="lvSizeSubA"></div></div>
+      </div>
+      <div class="meta" id="metaLineA" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="hist"><h2>Live Coins — Binance <span id="connTxt" style="color:var(--dim);font-size:.8rem;">Connecting…</span></h2><div id="coinList">Loading live prices from Binance…</div></div>
 
   <div class="card" id="cryptoCard">
     <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST CRYPTO TRADE</div>

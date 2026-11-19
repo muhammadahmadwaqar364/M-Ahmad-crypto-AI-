@@ -281,7 +281,121 @@
     }, 1000);
   }
 
+  // ---- Analyze any coin + live Binance coin list ----
+  function normalizeSymbol(raw) {
+    var s = (raw || "").toUpperCase().replace(/[\s\/\-_]/g, "");
+    if (!s) return "";
+    if (s === "XAU" || s === "GOLD") return "PAXGUSDT";
+    if (!/USDT$/.test(s)) s += "USDT";
+    return s;
+  }
+  function visionKlines(sym, interval, limit) {
+    return getJSON(SAPI + "/klines?symbol=" + sym + "&interval=" + interval + "&limit=" + limit, 9000);
+  }
+  function bitgetKlines(sym, interval, limit) {
+    var g = interval === "15m" ? "15min" : "1h";
+    return getJSON("https://api.bitget.com/api/v2/spot/market/candles?symbol=" + sym + "&granularity=" + g + "&limit=" + limit, 9000).then(function (j) {
+      var d = (j && j.data) || [];
+      if (!d.length) throw new Error("Bitget: no data");
+      var rows = d.map(function (r) { return [parseInt(r[0], 10), r[1], r[2], r[3], r[4], r[5]]; });
+      rows.sort(function (a, b) { return a[0] - b[0]; });
+      return rows;
+    });
+  }
+  function bybitKlines(sym, interval, limit) {
+    var iv = interval === "15m" ? "15" : "60";
+    return getJSON("https://api.bybit.com/v5/market/kline?category=linear&symbol=" + sym + "&interval=" + iv + "&limit=" + limit, 9000).then(function (j) {
+      var d = (j && j.result && j.result.list) || [];
+      if (!d.length) throw new Error("Bybit: no data");
+      var rows = d.map(function (r) { return [parseInt(r[0], 10), r[1], r[2], r[3], r[4], r[5]]; });
+      rows.sort(function (a, b) { return a[0] - b[0]; });
+      return rows;
+    });
+  }
+  // Binance first, then Bitget, then Bybit — so futures-only coins like
+  // BLESS (not on Binance spot) still analyze from another exchange.
+  function fetchPair(sym) {
+    var sources = [
+      {name: "Binance", fn: function (iv) { return visionKlines(sym, iv, 100); }},
+      {name: "Bitget", fn: function (iv) { return bitgetKlines(sym, iv, 100); }},
+      {name: "Bybit", fn: function (iv) { return bybitKlines(sym, iv, 100); }}
+    ];
+    var chain = Promise.reject(new Error("start"));
+    sources.forEach(function (src) {
+      chain = chain.catch(function () {
+        return Promise.all([src.fn("1h"), src.fn("15m")]).then(function (pair) {
+          if (!pair[0] || pair[0].length < 60 || !pair[1] || pair[1].length < 20) throw new Error(src.name + ": not enough candles");
+          return {k1h: pair[0], k15: pair[1], source: src.name};
+        });
+      });
+    });
+    return chain;
+  }
+  var analyzing = false;
+  function analyzeCoin(raw) {
+    var sym = normalizeSymbol(raw);
+    if (!sym) { $("analyzeStatus").textContent = "Please type a coin first — e.g. BLESS, HUMA, SOL."; return; }
+    if (analyzing) return;
+    analyzing = true;
+    $("analyzeBtn").disabled = true;
+    $("analyzeStatus").textContent = "Analyzing " + sym + " — fetching live candles…";
+    fetchPair(sym).then(function (res) {
+      analyzing = false;
+      $("analyzeBtn").disabled = false;
+      $("analyzeResult").style.display = "block";
+      var a = analyze(sym, res.k1h, res.k15);
+      var srcNote = res.source === "Binance" ? "Source: Binance live data." : "Source: " + res.source + " live data — Binance spot does not list " + sym + ", so candles come from " + res.source + ". Price may differ slightly from Binance futures.";
+      if (a && a.dir) {
+        showTrade(a, "A");
+        $("analyzeStatus").textContent = sym + " analyzed · " + srcNote;
+        pushHist(sym.replace("USDT", "") + " " + a.dir + " @ " + fmt(a.price) + " (your analyze)");
+      } else if (a) {
+        showNoTrade(1, "Checked " + sym + " — RSI " + a.rsi.toFixed(0) + ", volume " + a.volRatio.toFixed(2) + "x average. No setup passed all checks, so NO TRADE. " + srcNote, "A");
+        $("analyzeStatus").textContent = sym + " analyzed · " + srcNote;
+        pushHist(sym.replace("USDT", "") + " NO TRADE (your analyze)");
+      } else {
+        showNoTrade(1, "Not enough live data for " + sym + " to analyze. " + srcNote, "A");
+        $("analyzeStatus").textContent = sym + " — not enough data. " + srcNote;
+      }
+    }).catch(function () {
+      analyzing = false;
+      $("analyzeBtn").disabled = false;
+      $("analyzeResult").style.display = "block";
+      showNoTrade(1, sym + " not found on Binance, Bitget or Bybit. Check the spelling — e.g. BLESS, HUMA, SOL — and try again.", "A");
+      $("analyzeStatus").textContent = sym + " not found on any connected exchange.";
+    });
+  }
+  function loadTickers() {
+    var syms = COINS.map(function (s) { return '"' + s + '"'; }).join(",");
+    getJSON(SAPI + "/ticker/24hr?symbols=" + encodeURIComponent("[" + syms + "]"), 12000).then(function (arr) {
+      if (!arr || !arr.length) throw new Error("empty");
+      arr.sort(function (a, b) { return parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume); });
+      var list = $("coinList");
+      list.innerHTML = "";
+      arr.forEach(function (t) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "crow";
+        var chg = parseFloat(t.priceChangePercent);
+        b.innerHTML = "<span>" + t.symbol.replace("USDT", "") + "</span><span class=\"cp\">$" + fmt(parseFloat(t.lastPrice)) + " &nbsp;·&nbsp; <span style=\"color:" + (chg >= 0 ? "var(--long)" : "var(--short)") + "\">" + (chg >= 0 ? "+" : "") + chg.toFixed(2) + "%</span></span>";
+        b.addEventListener("click", function () { $("coinInput").value = t.symbol.replace("USDT", ""); analyzeCoin(t.symbol); });
+        list.appendChild(b);
+      });
+      $("connTxt").textContent = "● LIVE · Binance";
+      setLive(true);
+    }).catch(function () {
+      $("coinList").textContent = "Coin list failed to load — tap SCAN NOW to retry.";
+      $("connTxt").textContent = "Offline — retry";
+    });
+  }
+
   $("scanBtn").addEventListener("click", scan);
   updatePrices();
+  loadTickers();
+  $("analyzeBtn").addEventListener("click", function () { analyzeCoin($("coinInput").value); });
+  $("coinInput").addEventListener("keydown", function (e) { if (e.key === "Enter") analyzeCoin($("coinInput").value); });
+  document.querySelectorAll("#quickChips .chip-btn").forEach(function (b) {
+    b.addEventListener("click", function () { $("coinInput").value = b.getAttribute("data-sym").replace("USDT", ""); analyzeCoin(b.getAttribute("data-sym")); });
+  });
   scan(); // auto-scan on open — user does not need to tap anything
 })();
