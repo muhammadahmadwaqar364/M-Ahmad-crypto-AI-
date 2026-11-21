@@ -12,17 +12,77 @@
 // if live data fails, show an error, never an invented price.
 (function () {
   "use strict";
-  var COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT",
+  var BASE_COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT",
     // Binance futures coins (mostly NOT on Binance spot — scanned via Bitget Futures candles)
     "BLESSUSDT","HUMAUSDT","SENTUSDT","MMTUSDT","BREVUSDT","ZKCUSDT","LUNCUSDT","INITUSDT","LYNUSDT",
-    // Extra liquid futures coins — scan now covers 50 coins + gold
+    // Extra liquid futures coins — fallback list of 50 coins + gold
     "ENAUSDT","ONDOUSDT","JUPUSDT","TIAUSDT","SEIUSDT","INJUSDT","RENDERUSDT","FETUSDT","PYTHUSDT","STRKUSDT","WLDUSDT","FLOKIUSDT","BONKUSDT","SHIBUSDT","TRXUSDT","XLMUSDT","HBARUSDT","ALGOUSDT","VETUSDT","FILUSDT"];
+  // Coins Waqar follows — always deep-scanned even if their volume is low.
+  var WATCHLIST = ["BLESSUSDT","HUMAUSDT","SENTUSDT","MMTUSDT","BREVUSDT","ZKCUSDT","LUNCUSDT","INITUSDT","LYNUSDT","PAXGUSDT"];
+  var universe = {screened: 0, gainers: [], losers: []};
+  // Stage 1 — screen the WHOLE market in 2 requests: Binance spot tickers
+  // (784 USDT pairs) + Bitget futures tickers (892 USDT contracts). That is
+  // ~800 coins screened every scan. Stage 2 deep-scans only the top 100 by
+  // 24h volume + the biggest movers + the watchlist — full candles for all
+  // 800 would take minutes and get the app rate-limited. This is the same
+  // idea as the Crypto Bubbles app (top 1000 by market data), but for
+  // futures: volume + 24h move decide who gets the full check.
+  function screenUniverse() {
+    var stables = {USDT: 1, USDC: 1, FDUSD: 1, USDD: 1, DAI: 1, TUSD: 1, BUSD: 1, USD1: 1, USDP: 1, GUSD: 1, PYUSD: 1, EUR: 1, AEUR: 1, XUSD: 1, SUSD: 1};
+    // Bitget also lists tokenized US stocks/ETFs (AAPL, TSLA, SOXL, XAU …) —
+    // not crypto Waqar trades, so they are excluded from the screen.
+    var stocks = {AAPL: 1, TSLA: 1, NVDA: 1, AMZN: 1, GOOGL: 1, GOOG: 1, MSFT: 1, META: 1, AMD: 1, NFLX: 1, PLTR: 1, COIN: 1, MSTR: 1, SPY: 1, QQQ: 1, DIA: 1, IWM: 1, SOXL: 1, SOXS: 1, SOXLB: 1, SOXSB: 1, TSLL: 1, TSLQ: 1, NVDL: 1, NVDQ: 1, AMDL: 1, AAPB: 1, MSFU: 1, METU: 1, MSTX: 1, MSTU: 1, PLTU: 1, CONI: 1, CRCL: 1, HOOD: 1, IBIT: 1, UVXY: 1, SVXY: 1, VXX: 1, XAU: 1, XAG: 1, SNDK: 1, SKDD: 1, SKUU: 1, MUU: 1, H: 1};
+    function isJunk(sym) {
+      if (!/USDT$/.test(sym)) return true;
+      var base = sym.replace(/USDT$/, "");
+      if (stables[base] || stocks[base]) return true;
+      if (/UP$|DOWN$|BULL$|BEAR$/.test(base)) return true;
+      return false;
+    }
+    var binP = getJSON(SAPI + "/ticker/24hr", 15000).then(function (arr) {
+      var m = {};
+      (arr || []).forEach(function (t) {
+        if (isJunk(t.symbol)) return;
+        m[t.symbol] = {vol: parseFloat(t.quoteVolume) || 0, chg: parseFloat(t.priceChangePercent) || 0};
+      });
+      return m;
+    });
+    var bgP = getJSON("https://api.bitget.com/api/v2/mix/market/tickers?productType=USDT-FUTURES", 15000).then(function (j) {
+      var m = {};
+      ((j && j.data) || []).forEach(function (t) {
+        if (isJunk(t.symbol)) return;
+        m[t.symbol] = {vol: parseFloat(t.quoteVolume) || 0, chg: (parseFloat(t.change24h) || 0) * 100};
+      });
+      return m;
+    });
+    return Promise.all([binP, bgP]).then(function (pair) {
+      var merged = {};
+      [pair[0], pair[1]].forEach(function (m) {
+        Object.keys(m).forEach(function (sym) {
+          if (!merged[sym] || m[sym].vol > merged[sym].vol) merged[sym] = m[sym];
+        });
+      });
+      var all = Object.keys(merged).map(function (sym) { return {sym: sym, vol: merged[sym].vol, chg: merged[sym].chg}; })
+        .filter(function (x) { return x.vol > 1000000; }); // at least $1M 24h volume
+      universe.screened = all.length;
+      all.sort(function (a, b) { return b.vol - a.vol; });
+      var list = all.slice(0, 80).map(function (x) { return x.sym; });
+      var byChg = all.slice().sort(function (a, b) { return b.chg - a.chg; });
+      var gainers = byChg.filter(function (x) { return x.chg > 0; }).slice(0, 8);
+      var losers = byChg.slice(-8).reverse().filter(function (x) { return x.chg < 0; });
+      universe.gainers = gainers; universe.losers = losers;
+      gainers.concat(losers).forEach(function (x) { if (list.indexOf(x.sym) < 0) list.push(x.sym); });
+      WATCHLIST.forEach(function (sym) { if (list.indexOf(sym) < 0) list.push(sym); });
+      return {list: list.slice(0, 100), screened: all.length};
+    });
+  }
   // Coins actually listed on Binance spot — only these go in the live list ticker call.
   var LIST_COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT"];
   var RISK = 5; // $ per trade, fixed
   var SAPI = "https://data-api.binance.vision/api/v3";
   var $ = function (id) { return document.getElementById(id); };
   var scanning = false, lastScanAt = 0, nextTimer = null;
+
   var scanMap = {};       // symbol -> {k1h, k15, source, lastPrice}
   var lastTrade = {};     // prefix ("C"/"G"/"A") -> last shown trade object
   var lastTickers = null; // Binance 24h tickers array
@@ -387,8 +447,9 @@
     if (s.goldPrice) parts.push("gold <b>$" + fmt(s.goldPrice) + "</b>");
     if (fgValue != null) parts.push("Fear &amp; Greed <b>" + fgValue + " (" + fgLabel + ")</b>");
     var lines = parts.length ? parts.join(" · ") + ". " : "";
+    if (s.screened) lines = "Screened <b>" + s.screened + " coins</b>, deep-checked top " + s.total + ". " + lines;
     if (s.crypto) lines += "Best crypto setup: <b>" + s.crypto.symbol.replace("USDT", "") + " " + s.crypto.dir + "</b> at $" + fmt(s.crypto.price) + ". ";
-    else lines += "No crypto coin passed all checks — " + s.passed + " of " + s.total + " had a setup, volume is thin. ";
+    else lines += "No crypto coin passed all checks — " + s.passed + " of " + s.total + " deep-checked had a setup, volume is thin. ";
     if (s.gold) lines += "Gold: <b>" + s.gold.dir + "</b> at $" + fmt(s.gold.price) + ". ";
     else lines += "Gold: no setup right now. ";
     lines += "Waiting for volume is part of the plan — the next scan runs in 5 minutes.";
@@ -427,6 +488,13 @@
     loadLongShort("ETH-USDT-SWAP", "lsEth", function (v) { lsEth = v; });
   }
   function renderMovers() {
+    // Bubbles-style movers across the whole screened universe (~800 coins).
+    if (universe.gainers.length || universe.losers.length) {
+      var top = universe.gainers.slice(0, 3).map(function (x) { return x.sym.replace("USDT", "") + " +" + x.chg.toFixed(1) + "%"; });
+      var bot = universe.losers.slice(0, 3).map(function (x) { return x.sym.replace("USDT", "") + " " + x.chg.toFixed(1) + "%"; });
+      $("moversBox").innerHTML = "Top movers 24h (all " + (universe.screened || "800") + " coins) — <b style=\"color:var(--long)\">" + top.join(" · ") + "</b><br>Weakest 24h — <b style=\"color:var(--short)\">" + bot.join(" · ") + "</b>";
+      return;
+    }
     if (!lastTickers || !lastTickers.length) return;
     var sorted = lastTickers.slice().sort(function (a, b) { return parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent); });
     var top = sorted.slice(0, 3).map(function (t) { return t.symbol.replace("USDT", "") + " +" + parseFloat(t.priceChangePercent).toFixed(1) + "%"; });
@@ -510,17 +578,28 @@
     scanning = true;
     $("scanBtn").disabled = true;
     $("errBox").className = "err";
-    setBar(8);
-    setStatus("Scanning crypto + gold… checking trend, RSI, volume…");
+    setBar(4);
+    setStatus("Screening ~800 coins by volume…");
     updatePrices();
+    // Stage 1: screen the whole market; Stage 2: deep-scan the top 100.
+    // If screening fails, fall back to the fixed 50-coin list.
+    screenUniverse().then(function (res) {
+      deepScan(res.list, res.screened);
+    }).catch(function () {
+      deepScan(BASE_COINS, 0);
+    });
+  }
+  function deepScan(list, screened) {
+    setBar(8);
+    setStatus("Deep-scanning top " + list.length + " coins — trend, RSI, volume…");
     var done = 0, results = [], failed = 0;
-    var total = COINS.length;
+    var total = list.length;
     function tick() {
       done++;
       setBar(Math.round(8 + (done / total) * 88));
       setStatus("Checking " + done + " / " + total + " coins…");
     }
-    var jobs = COINS.map(function (sym) {
+    var jobs = list.map(function (sym) {
       return fetchPair(sym).then(function (res) {
         tick();
         scanMap[sym] = res;
@@ -530,7 +609,7 @@
         return a;
       }).catch(function () { failed++; tick(); return null; });
     });
-    Promise.all(jobs).then(function () {
+    Promise.all(jobs).then(function (all) {
       scanning = false;
       $("scanBtn").disabled = false;
       setBar(100);
@@ -552,7 +631,7 @@
       var gold = null;
       for (var gi = 0; gi < results.length; gi++) { if (results[gi].symbol === "PAXGUSDT") { gold = results[gi]; break; } }
       var goldPrice = scanMap.PAXGUSDT ? parseFloat(scanMap.PAXGUSDT.k1h[scanMap.PAXGUSDT.k1h.length - 1][4]) : null;
-      lastScanSummary = {crypto: crypto.length ? crypto[0] : null, gold: gold, passed: results.length, total: total, goldPrice: goldPrice};
+      lastScanSummary = {crypto: crypto.length ? crypto[0] : null, gold: gold, passed: results.length, total: total, goldPrice: goldPrice, screened: screened};
       if (crypto.length) {
         showTrade(crypto[0], "C");
         addSignal(crypto[0]);
@@ -574,7 +653,7 @@
       updatePaper();
       renderPaper();
       renderBrief();
-      setStatus("Scanned " + total + " coins + gold · " + results.length + " passed all checks · Next auto-scan in 5 min");
+      setStatus("Screened " + (screened || total) + " coins · deep-checked " + total + " · " + results.length + " passed all checks · Next auto-scan in 5 min");
     });
   }
 

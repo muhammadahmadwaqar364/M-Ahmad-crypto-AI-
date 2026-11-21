@@ -130,7 +130,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
     <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST CRYPTO TRADE</div>
     <div class="word wait" id="wordC">—</div>
     <div class="sym" id="symC">Waiting for scan…</div>
-    <p class="reason" id="reasonC">Scanning 50 crypto coins — the best one that passes all checks appears here.</p>
+    <p class="reason" id="reasonC">Screening ~800 coins — the top 100 by volume get the full check, and the best one appears here.</p>
     <div class="grid" id="levelsC" style="display:none">
       <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntryC">—</div><div class="s" id="lvEntrySubC"></div></div>
       <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSLC">—</div><div class="s">Risk $5.00</div></div>
@@ -176,12 +176,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 
   <div class="hist"><h2>Paper Trades <span class="rate" id="paperTotal"></span></h2><div id="paperList">No paper trades yet — tap “Paper-trade this setup” on any signal to practice with $5 virtual risk.</div></div>
 
-  <div class="hist"><h2>Market Brief</h2><div id="briefLine">Loading market brief…</div><div id="heatMap" style="margin-top:8px"></div></div>
-
-  <div class="hist"><h2>Signals Feed <span id="winRate" style="color:var(--dim);font-size:.8rem;">No closed signals yet</span></h2><div id="feedList">No signals yet — the next auto-scan adds the best trade here.</div><p style="font-size:.78rem;color:var(--dim);font-weight:600;margin:8px 0 0">HIT means the price touched TP1 (book 50% there, then move SL to entry). Losing signals stay in this feed — nothing is deleted. Feed is saved on this phone only.</p></div>
-
   <div class="hist"><h2>Last scans</h2><div id="histList">No scan yet.</div></div>
-  <p class="note">Analysis runs in the background — trend, RSI, MACD, volume, support / resistance, funding, open interest and BTC context. Signals stay in the feed with their real outcome: Hit TP1 / TP2 / TP3, Stopped, or Expired after 24h. No signal is 100%. Always use the stop loss. This is not financial advice.</p>
+  <p class="note">Every scan screens ~800 USDT pairs by 24h volume and biggest movers (like the Crypto Bubbles top-1000 view), then deep-checks the top 100 with trend, RSI, MACD, volume, support / resistance, funding, open interest and BTC context. Signals stay in the feed with their real outcome: Hit TP1 / TP2 / TP3, Stopped, or Expired after 24h. No signal is 100%. Always use the stop loss. This is not financial advice.</p>
 </div>
 <script src="js/simple.js"></script>
 </body>
