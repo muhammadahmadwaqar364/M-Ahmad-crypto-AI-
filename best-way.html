@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Best Way — $200 Account</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2rem; }
+
+      :root {
+        --bg: #f6f4ef;
+        --surface: #fffdf8;
+        --surface-2: #efeadf;
+        --ink: #191713;
+        --ink-2: #55503f;
+        --line: #ddd5c2;
+        --amber: #b97e00;
+        --amber-soft: #f7e8bd;
+        --green: #177245;
+        --green-soft: #dcefe2;
+        --red: #b3352b;
+        --red-soft: #f6ded9;
+        --gold: #8a6d1a;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d0f12;
+          --surface: #15181d;
+          --surface-2: #1d2129;
+          --ink: #f2efe6;
+          --ink-2: #a8a294;
+          --line: #2c313b;
+          --amber: #f0b90b;
+          --amber-soft: #3a2f08;
+          --green: #3ecf8e;
+          --green-soft: #123325;
+          --red: #ff6d5e;
+          --red-soft: #3d1712;
+          --gold: #f0b90b;
+          color-scheme: dark;
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Archivo", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+      .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+      main { max-width: 880px; margin: 0 auto; padding: 0 18px 64px; }
+      a { color: var(--amber); }
+      :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+      /* ---------- Verdict hero ---------- */
+      .verdict { padding: 34px 0 8px; }
+      .verdict .date-line {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12.5px; letter-spacing: .04em;
+        color: var(--ink-2); margin: 0 0 14px;
+      }
+      h1 {
+        font-size: clamp(30px, 6.4vw, 46px);
+        line-height: 1.08; font-weight: 800;
+        margin: 0 0 14px; letter-spacing: -0.01em;
+      }
+      .verdict .answer {
+        font-size: clamp(18px, 3.6vw, 22px);
+        font-weight: 600; line-height: 1.4; margin: 0 0 18px;
+      }
+      .verdict .answer strong { color: var(--amber); }
+      .truth {
+        border: 1px solid var(--line);
+        border-top: 4px solid var(--red);
+        background: var(--surface);
+        padding: 16px 18px; margin: 0 0 10px;
+      }
+      .truth h2 { font-size: 17px; margin: 0 0 6px; }
+      .truth p { margin: 0; color: var(--ink-2); font-size: 15px; }
+      .truth p strong { color: var(--ink); }
+
+      /* ---------- Sections ---------- */
+      section { margin-top: 44px; }
+      h2.sec {
+        font-size: 24px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.01em;
+      }
+      .sec-sub { color: var(--ink-2); margin: 0 0 18px; font-size: 15px; }
+      h3.sub { font-size: 18px; font-weight: 700; margin: 26px 0 8px; }
+      p { margin: 0 0 12px; }
+      .small { font-size: 13.5px; color: var(--ink-2); }
+      .src { font-size: 12.5px; color: var(--ink-2); font-family: "IBM Plex Mono", monospace; }
+
+      /* ---------- Ranking ---------- */
+      .rank-list { display: flex; flex-direction: column; gap: 10px; }
+      .rank-card {
+        display: grid; grid-template-columns: 52px 1fr; gap: 0 14px;
+        background: var(--surface); border: 1px solid var(--line);
+        padding: 16px 18px 14px;
+      }
+      .rank-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 30px; font-weight: 600; line-height: 1;
+        color: var(--ink-2);
+      }
+      .rank-card.best { border: 2px solid var(--amber); }
+      .rank-card.best .rank-num { color: var(--amber); }
+      .rank-card h3 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+      .rank-card .why { margin: 0 0 10px; color: var(--ink-2); font-size: 14.5px; }
+      .rank-meta {
+        grid-column: 1 / -1;
+        display: flex; flex-wrap: wrap; gap: 8px 22px;
+        border-top: 1px dashed var(--line); padding-top: 10px;
+        font-size: 13.5px;
+      }
+      .rank-meta .k { color: var(--ink-2); display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }
+      .rank-meta .v { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 14.5px; }
+      .pos { color: var(--green); } .neg { color: var(--red); }
+
+      /* ---------- Calculator ---------- */
+      .calc {
+        background: var(--surface); border: 1px solid var(--line);
+        padding: 20px 18px;
+      }
+      .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; }
+      @media (max-width: 560px) { .calc-grid { grid-template-columns: 1fr; } }
+      .calc label { display: block; font-weight: 600; font-size: 14.5px; margin-bottom: 6px; }
+      .calc label .val { font-family: "IBM Plex Mono", monospace; color: var(--amber); }
+      .calc input[type="range"] { width: 100%; accent-color: var(--amber); min-height: 36px; }
+      .calc .out {
+        margin-top: 18px; border-top: 1px dashed var(--line); padding-top: 14px;
+        display: flex; flex-wrap: wrap; gap: 10px 34px;
+      }
+      .calc .out .k { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+      .calc .out .v { font-family: "IBM Plex Mono", monospace; font-size: 22px; font-weight: 600; }
+
+      /* ---------- Provider / data cards ---------- */
+      .cards { display: flex; flex-direction: column; gap: 10px; }
+      .card {
+        background: var(--surface); border: 1px solid var(--line); padding: 16px 18px;
+      }
+      .card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 8px; }
+      .card-head h3 { margin: 0; font-size: 17px; font-weight: 700; }
+      .tag {
+        font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600;
+        padding: 2px 8px; border-radius: 999px;
+      }
+      .tag.bad { background: var(--red-soft); color: var(--red); }
+      .tag.ok { background: var(--green-soft); color: var(--green); }
+      .tag.warn { background: var(--amber-soft); color: var(--gold); }
+      .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 20px; margin: 10px 0; }
+      .kv .k { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+      .kv .v { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 15px; }
+      .card p { font-size: 14.5px; color: var(--ink-2); margin: 0 0 8px; }
+      .card p strong { color: var(--ink); }
+      .card p:last-child { margin-bottom: 0; }
+
+      /* ---------- Plan steps ---------- */
+      .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+      .step {
+        background: var(--surface); border: 1px solid var(--line);
+        padding: 16px 18px 16px 64px; position: relative;
+      }
+      .step::before {
+        counter-increment: step; content: counter(step);
+        position: absolute; left: 18px; top: 14px;
+        font-family: "IBM Plex Mono", monospace; font-size: 26px; font-weight: 600; color: var(--amber);
+      }
+      .step h3 { margin: 0 0 5px; font-size: 17px; }
+      .step p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+      .step p strong { color: var(--ink); }
+
+      .rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+      .rules li {
+        background: var(--surface-2); padding: 11px 14px 11px 40px; position: relative; font-size: 15px;
+      }
+      .rules li::before {
+        content: ""; position: absolute; left: 15px; top: 17px;
+        width: 9px; height: 9px; background: var(--amber);
+      }
+      .rules li strong { font-family: "IBM Plex Mono", monospace; }
+
+      /* ---------- Chart ---------- */
+      .chart-wrap { background: var(--surface); border: 1px solid var(--line); padding: 18px; }
+      .chart-wrap h3 { margin: 0 0 2px; font-size: 16px; }
+      svg.chart { width: 100%; height: auto; display: block; }
+      .chart-legend { display: flex; gap: 20px; font-size: 13px; font-family: "IBM Plex Mono", monospace; margin-top: 8px; flex-wrap: wrap; }
+      .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: baseline; }
+
+      /* ---------- Year table ---------- */
+      .ytable { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+      .ytable th, .ytable td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+      .ytable th:first-child, .ytable td:first-child { text-align: left; }
+      .ytable th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
+      .ytable td { font-family: "IBM Plex Mono", monospace; }
+      .ytable td:first-child { font-family: "Archivo", sans-serif; font-weight: 600; }
+      .table-scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); padding: 6px 10px; }
+
+      /* ---------- Open questions / sources ---------- */
+      .open-q { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; }
+      .open-q ul { margin: 0; padding-left: 20px; }
+      .open-q li { margin-bottom: 8px; font-size: 14.5px; }
+      .open-q li:last-child { margin-bottom: 0; }
+      .sources { font-size: 13.5px; }
+      .sources li { margin-bottom: 7px; overflow-wrap: anywhere; }
+      footer { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <main>
+
+      <!-- ============ VERDICT ============ -->
+      <div class="verdict">
+        <p class="date-line">RESEARCH CHECKED 21 NOV 2026 · EVERY NUMBER BELOW HAS A SOURCE</p>
+        <h1>The best way to grow a $200 account</h1>
+        <p class="answer">Pay for <strong>nothing</strong>. Trade only with the scanner you already own — and only after it passes a <strong>50-trade paper test</strong>. If the paper test fails, put the $200 in <strong>BTC spot</strong> and stop trading futures.</p>
+        <div class="truth">
+          <h2>First, the hard truth about the $10–15/day target</h2>
+          <p>$10–15 a day is <strong>$200–300 a month — 100–150% monthly profit</strong> on a $200 account. No path checked in this research can plausibly deliver that at $5 risk per trade. It is <strong>8–10× what even a good intraday trader makes</strong> at this size. A realistic good month is <strong>$0–25 profit</strong>. Anyone selling you 90%+ accuracy to reach that target is selling a claim no independent audit supports — every 82–97% win-rate claim found was self-reported. The only independent audit found says <strong>37%</strong> (PNL Mama), and the most honest fully published record — a provider's own paper log, fees included — sits at <strong>40.8% wins with profit factor 1.00</strong> (Darwin Lab): breakeven.</p>
+        </div>
+      </div>
+
+      <!-- ============ RANKING ============ -->
+      <section aria-labelledby="rank-h">
+        <h2 class="sec" id="rank-h">The 5 paths, ranked for you</h2>
+        <p class="sec-sub">Ranked against your rules: intraday only, $5 max risk per trade, no API keys or logins to anyone, no more than ~$10/month for any service.</p>
+        <div class="rank-list">
+
+          <article class="rank-card best">
+            <div class="rank-num">1</div>
+            <div>
+              <h3>Self-trading with your own scanner</h3>
+              <p class="why">The only active path that fits every one of your rules: zero extra cost, full control, no API exposure, intraday — and its edge can be tested on paper before a single real dollar is risked.</p>
+            </div>
+            <div class="rank-meta">
+              <div><span class="k">Cost</span><span class="v">$0 / month</span></div>
+              <div><span class="k">Capital needed</span><span class="v">$200 (you have it)</span></div>
+              <div><span class="k">Realistic month</span><span class="v neg">−$20</span><span class="v"> to </span><span class="v pos">+$25</span></div>
+            </div>
+          </article>
+
+          <article class="rank-card">
+            <div class="rank-num">2</div>
+            <div>
+              <h3>Hold BTC spot — no leverage, no signals</h3>
+              <p class="why">The only path with a positive long-run expected return and no liquidation risk. But it pays no daily income, and right now it is losing: BTC is −28.9% over the last year.</p>
+            </div>
+            <div class="rank-meta">
+              <div><span class="k">Cost</span><span class="v">$0 / month</span></div>
+              <div><span class="k">Capital needed</span><span class="v">$200</span></div>
+              <div><span class="k">Realistic month</span><span class="v neg">−$50</span><span class="v"> to </span><span class="v pos">+$25</span></div>
+            </div>
+          </article>
+
+          <article class="rank-card">
+            <div class="rank-num">3</div>
+            <div>
+              <h3>Copy trading</h3>
+              <p class="why">No subscription and no API key — but a $10–50 test is too small to copy a futures leader faithfully (positions round away, entries diverge), and verified leaders carry 39–69% drawdowns. Copiers have lost money even while the leader's ROI was positive.</p>
+            </div>
+            <div class="rank-meta">
+              <div><span class="k">Cost</span><span class="v">$0 + 10% profit share</span></div>
+              <div><span class="k">Practical minimum</span><span class="v">~$500–1,000 (Binance futures)</span></div>
+              <div><span class="k">On a $50 test</span><span class="v neg">−$20</span><span class="v"> to </span><span class="v pos">+$5</span></div>
+            </div>
+          </article>
+
+          <article class="rank-card">
+            <div class="rank-num">4</div>
+            <div>
+              <h3>Grid / DCA bots (Binance native only)</h3>
+              <p class="why">Free on Binance, but verified backtests are negative on average, a 97% win-rate futures grid still lost 84% of its account, and a grid is not intraday — your money sits locked in inventory for days or weeks.</p>
+            </div>
+            <div class="rank-meta">
+              <div><span class="k">Cost</span><span class="v">$0 + trading fees</span></div>
+              <div><span class="k">Capital needed</span><span class="v">$200 (profit per grid: cents)</span></div>
+              <div><span class="k">Realistic month</span><span class="v neg">−$10</span><span class="v"> to </span><span class="v pos">+$2</span></div>
+            </div>
+          </article>
+
+          <article class="rank-card">
+            <div class="rank-num">5</div>
+            <div>
+              <h3>Paid signal services — worst</h3>
+              <p class="why">The fee alone is 5–28% of your whole account every month, paid for win rates that are self-reported (82–93% claimed) against 37% independently audited. The fee eats most or all of the profit before you place a single trade.</p>
+            </div>
+            <div class="rank-meta">
+              <div><span class="k">Cost</span><span class="v">$9.99 – $56 / month</span></div>
+              <div><span class="k">Capital needed</span><span class="v">$200 + the fee</span></div>
+              <div><span class="k">Fee alone</span><span class="v neg">−$10 to −$56 / month</span></div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ THE MATHS ============ -->
+      <section aria-labelledby="math-h">
+        <h2 class="sec" id="math-h">The maths that decides everything</h2>
+        <p class="sec-sub">At $5 risk per trade and 2–3 trades a day, you make roughly 40–60 trades a month. What each trade earns on average — the expectancy — is the whole game.</p>
+
+        <div class="cards">
+          <div class="card">
+            <div class="kv">
+              <div><span class="k">40% wins · 1:2 reward</span><span class="v pos">+$1.00 / trade</span></div>
+              <div><span class="k">50% wins · 1:1.5 reward</span><span class="v pos">+$1.25 / trade</span></div>
+              <div><span class="k">37% wins · 1:3 (audited rate)</span><span class="v pos">+$2.40 / trade</span></div>
+            </div>
+            <p>These are <strong>gross</strong> numbers, before fees — and the 37% figure assumes none of the −100% liquidation trades that the same audit recorded. To net $200–300/month you would need about <strong>+$4–5 per trade after fees</strong> — roughly 70% wins at 1:2. No independent audit in this research supports a rate anywhere near that.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Fees quietly take 25–100% of the edge</h3></div>
+            <p>Binance USDT-M futures charge regular users <strong>0.02% maker / 0.05% taker</strong> on the full position size, both sides. With $5 risk, your position is $250 (2% stop) to $1,000 (0.5% stop), so one taker round-trip costs <strong>$0.25–$1.00 per trade</strong> — that is <strong>$10–60 a month</strong> on 40–60 trades, before funding, spread and slippage. <span class="src">Source: dexsheet.com (Binance futures fees)</span></p>
+          </div>
+        </div>
+
+        <h3 class="sub">Try it yourself</h3>
+        <p class="sec-sub">Move the sliders. This is the same arithmetic as above — $5 risk, 50 trades a month.</p>
+        <div class="calc" aria-label="Expectancy calculator">
+          <div class="calc-grid">
+            <div>
+              <label for="winRate">Win rate: <span class="val" id="winRateVal">40%</span></label>
+              <input type="range" id="winRate" min="20" max="80" step="1" value="40" />
+            </div>
+            <div>
+              <label for="rr">Reward vs risk: <span class="val" id="rrVal">1 : 2.0</span></label>
+              <input type="range" id="rr" min="10" max="30" step="1" value="20" />
+            </div>
+            <div>
+              <label for="fee">Fee per trade: <span class="val" id="feeVal">$0.50</span></label>
+              <input type="range" id="fee" min="25" max="100" step="5" value="50" />
+            </div>
+            <div>
+              <label for="trades">Trades per month: <span class="val" id="tradesVal">50</span></label>
+              <input type="range" id="trades" min="20" max="60" step="5" value="50" />
+            </div>
+          </div>
+          <div class="out">
+            <div><span class="k">Per trade, after fees</span><span class="v" id="perTrade">+$0.50</span></div>
+            <div><span class="k">Per month, after fees</span><span class="v" id="perMonth">+$25</span></div>
+            <div><span class="k">Per day (20 trading days)</span><span class="v" id="perDay">+$1.25</span></div>
+          </div>
+          <p class="small" style="margin:12px 0 0">Try 70% wins at 1:2: the raw arithmetic does reach about $12.50/day — but that is precisely the trap. No independent audit supports anything near a 70% win rate; the checkable records sit at 37–41%, where this same calculator shows roughly breakeven to a small loss once fees are counted. And this model is still generous: it leaves out slippage, funding, and the −100% liquidation trades real audits recorded.</p>
+        </div>
+      </section>
+
+      <!-- ============ PATH 5 DETAIL: SIGNALS ============ -->
+      <section aria-labelledby="sig-h">
+        <h2 class="sec" id="sig-h">Path 5 · Paid signal services — the evidence</h2>
+        <p class="sec-sub">Every provider checked claims a high win rate. Only one has an independent audit — and it says 37%, not 82%.</p>
+        <div class="cards">
+
+          <div class="card">
+            <div class="card-head"><h3>CryptoSignals.org</h3><span class="tag bad">Fee eats the profit</span></div>
+            <div class="kv">
+              <div><span class="k">Cost</span><span class="v">£42/mo ≈ $56</span></div>
+              <div><span class="k">Share of your account</span><span class="v neg">28% / month</span></div>
+              <div><span class="k">Claimed win rate</span><span class="v">82%</span></div>
+              <div><span class="k">Independently audited</span><span class="v neg">37%</span></div>
+            </div>
+            <p>Signals do include entry, stop-loss and take-profit (typically 1:3). But PNL Mama's independent tracking of exchange prices found <strong>37% wins over the last 30 days</strong> (19 closed trades, +67.88 USDT realised) — and repeated <strong>−100% trades</strong> (BLESS, SOPH, EVAA, JCT long at 10×), where the position was liquidated before the stop-loss could work. PNL Mama also found a −10.6% entry difference on one "winning" signal: the market had already moved past the entry by the time it was posted. You would need +$56/month just to cover the fee. <span class="src">Sources: pnlmama.com (verified live), cryptosignals.org, bullstarsignals.com</span></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Learn2Trade</h3><span class="tag bad">Fee eats the profit</span></div>
+            <div class="kv">
+              <div><span class="k">Cost</span><span class="v">£39/mo ≈ $52</span></div>
+              <div><span class="k">Share of your account</span><span class="v neg">26% / month</span></div>
+              <div><span class="k">Claimed win rate</span><span class="v">72–82%</span></div>
+              <div><span class="k">Independently audited</span><span class="v neg">None found</span></div>
+            </div>
+            <p>Signals include entry, SL and TP, up to 5 a day on VIP. The win-rate claim is self-reported; a 16-provider audit found 11 of 16 providers — this cohort included — had <strong>no complete independently reproducible record</strong>. Trustpilot rating <strong>1.6/5 from 451 reviews</strong> (per CoinCodeCap). <span class="src">Sources: signals.coincodecap.com, cryptosignalsreview.com</span></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Tradebise</h3><span class="tag warn">Over your $10 budget</span></div>
+            <div class="kv">
+              <div><span class="k">Cost</span><span class="v">$14.99 / 30 days</span></div>
+              <div><span class="k">With Telegram alerts</span><span class="v">$19.99</span></div>
+              <div><span class="k">Claimed success rate</span><span class="v">93%</span></div>
+              <div><span class="k">Independently audited</span><span class="v neg">None found</span></div>
+            </div>
+            <p>Free tier gives 2 signals a day, and it states "a stop-loss on every single call." The <strong>93% success rate (538,305 signals generated)</strong> is shown on its own dashboard with no independent audit behind it, and user comments report signals flipping buy→sell within minutes and stop-loss hits. <span class="src">Source: tradebise.com/premium</span></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>TraderSpy</h3><span class="tag ok">Only one inside budget</span></div>
+            <div class="kv">
+              <div><span class="k">Cost</span><span class="v">Free · Starter $9.99/mo</span></div>
+              <div><span class="k">Claimed (self-reported)</span><span class="v">65–72%</span></div>
+              <div><span class="k">Independently audited</span><span class="v neg">None found</span></div>
+              <div><span class="k">Free tier catch</span><span class="v neg">Alerts delayed 15 min</span></div>
+            </div>
+            <p>Signals include entry, up to 3 take-profits and a stop-loss, and every outcome is published. Its 65% scorecard (133 signals, 2–9 Aug 2026) and 72% figure are <strong>self-reported on its own channels</strong> — its live signals page was not opened in this research, so treat them as self-published, not verified. A 15-minute delay makes the free tier unusable for intraday entries. Its own research is also a warning: in TraderSpy's backtest, <strong>RSI below 30 won only 43.1% with a −1.7% average return</strong> over 7 days. <span class="src">Sources: traderspy.app, blog.traderspy.app</span></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>The honest benchmark: Darwin Lab</h3></div>
+            <p>One provider publishes everything — fees and losses included. Its fully published record: <strong>1,484 paper closes, 40.8% wins after fees, profit factor 1.00, median trade −1.54%, longest losing streak 24 trades</strong>. Its real-money run went from 60% wins before fees to 52% after fees — and still lost <strong>−$149</strong> (22 May – 26 Jun 2026). That is what a real, checkable record looks like — and it proves a win rate above 50% can still lose money once fees are counted. <span class="src">Source: darwintrade.com (verified live)</span></p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ PATH 3 DETAIL: COPY ============ -->
+      <section aria-labelledby="copy-h">
+        <h2 class="sec" id="copy-h">Path 3 · Copy trading — leader ROI is not your return</h2>
+        <p class="sec-sub">Minimums and profit share by platform, then what independent audits of actual Binance leaders found.</p>
+        <div class="cards">
+          <div class="card">
+            <div class="kv">
+              <div><span class="k">Binance</span><span class="v">10 USDT min · 10% share</span></div>
+              <div><span class="k">Bybit (Classic)</span><span class="v">100 USDT min · 10–15%</span></div>
+              <div><span class="k">Bitget</span><span class="v">50 USDT min · 10–20%</span></div>
+              <div><span class="k">Bitunix</span><span class="v">$10 fixed mode · 10%</span></div>
+            </div>
+            <p>Official minimums are small, but Binance's <strong>practical</strong> minimum is about <strong>$500 spot / $1,000 futures</strong> — below that, position rounding makes your copy diverge from the leader, and a $10 copy rounds many positions to zero. Bitunix caps copied leverage at 10×. Profit share can reach 30% on elite Binance leaders. <span class="src">Sources: feeotter.com, copi-tools.com, withdrawfirst.com, bitunix.com, coinpaper.com</span></p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>What the leader audits actually show</h3></div>
+            <p><strong>Leader A:</strong> +185% ROI, 42.7% max drawdown, average copier <span class="pos">+275 USDT</span> — but 1 previous portfolio closed/deleted. <strong>Leader B:</strong> +80.6% ROI, 38.6% drawdown, average copier <span class="pos">+150 USDT</span> — 4 previous portfolios deleted. <strong>Leader C:</strong> −70.8% ROI, 69.3% drawdown, average copier <span class="neg">−463 USDT</span>. <strong>Leader D:</strong> +26.1% ROI, yet copier PnL was <span class="neg">−14,104 USDT (average copier −211 USDT)</span> — the leader was up while the average copier lost, through late entries, slippage, fees and different sizing.</p>
+            <p><strong>No leader was found</strong> with all three at once: 90+ days of history, max drawdown under 25%, and positive average copier PnL. The ones with positive copier PnL had 39–43% drawdowns and deleted past portfolios. On a $50 test, a normal 40% drawdown loses $20; a good +10% month earns about +$4 after the 10% share and fees. <span class="src">Source: cruxax.com leader audits (public Binance data, 90-day windows)</span></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PATH 1 DETAIL: SELF-TRADING ============ -->
+      <section aria-labelledby="self-h">
+        <h2 class="sec" id="self-h">Path 1 · Your own scanner — best fit, honest odds</h2>
+        <p class="sec-sub">This ranks first because it costs nothing extra and you control everything — not because the odds are generous. Here are the real odds.</p>
+        <div class="cards">
+          <div class="card">
+            <div class="card-head"><h3>The base rate nobody advertises</h3></div>
+            <p>Roughly <strong>90% of day traders lose money</strong>. Exchange-data studies are harsher: in Brazil, <strong>97% of people who day-traded for 300+ days lost money</strong> and only 1.1% earned more than the minimum wage; in Taiwan over 15 years, <strong>fewer than 1%</strong> predictably earned abnormal returns after fees; ESMA reports <strong>74–89% of retail CFD accounts lose</strong>. <span class="src">Source: emergeprofit.com (study summaries)</span></p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>RSI alone has no verified edge</h3></div>
+            <div class="kv">
+              <div><span class="k">RSI(14) &lt; 30</span><span class="v neg">43.1% wins · −1.7% avg</span></div>
+              <div><span class="k">Stochastic / Williams %R</span><span class="v">51.6% · +0.3%</span></div>
+              <div><span class="k">MFI &lt; 20</span><span class="v">49.3% · −1.1%</span></div>
+              <div><span class="k">CCI(20) &lt; −100</span><span class="v pos">60.9% · +2.0%</span></div>
+            </div>
+            <p>From TraderSpy's own event study — 1,062 oversold signals across 6 pairs, measured over 7 days. RSI oversold alone performed <strong>worse than a coin flip</strong>. Adding volume and trend confirmation, as your scanner does, is the right idea — but <strong>no source in this research verified a combined RSI + volume + trend intraday win rate</strong> for altcoin futures. Any vendor claiming one is extrapolating. That is exactly why the paper test below matters: your own 50 trades are the only verification available. <span class="src">Source: blog.traderspy.app</span></p>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>The risk that ends accounts</h3></div>
+            <p>One full loss is $5 — 2.5% of the account. <strong>8 losses in a row = −$40, a fifth of the account</strong>, and losing streaks that long are normal (Darwin Lab's longest was 24). The other killers: trading 2–3 times a day even when no real setup exists, just to "do something"; altcoin slippage and funding; and revenge trading after a loss. The rules in the plan below exist to block all three.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PATH 4 DETAIL: GRID ============ -->
+      <section aria-labelledby="grid-h">
+        <h2 class="sec" id="grid-h">Path 4 · Grid bots — a 97% win rate that lost 84%</h2>
+        <p class="sec-sub">Binance's built-in grid and DCA bots are free. Third-party bots (Bitsgap from $23/mo, 3Commas $15–20/mo, Cryptohopper $24–29/mo) break both of your rules — monthly fees and your API keys — so only the Binance-native numbers matter here.</p>
+        <div class="cards">
+          <div class="card">
+            <div class="kv">
+              <div><span class="k">Spot grid, 58-month backtest</span><span class="v neg">−0.39% / month avg</span></div>
+              <div><span class="k">Just holding, same period</span><span class="v pos">+2.03% / month avg</span></div>
+              <div><span class="k">58-month total on $10,000</span><span class="v neg">Grid −$2,283 · Hold +$11,779</span></div>
+            </div>
+            <p>A fresh $10,000 BTC grid every month for 58 months (Jan 2022 – Oct 2026, ±10% range, 20 grids). The bot screen shows only realised grid profit — median $232.52/month — while the coin it holds loses more than the grids earn. Price stayed inside the ±10% range for a full month in only <strong>12 of 58 months</strong>. <span class="src">Source: mlh.forem.wtf grid backtest</span></p>
+          </div>
+          <div class="card">
+            <div class="kv">
+              <div><span class="k">Futures grid with 10% stop-loss</span><span class="v neg">−26.37% total · 85.1% win rate</span></div>
+              <div><span class="k">Futures grid, no stop-loss</span><span class="v neg">−84.15% total · 97.1% win rate</span></div>
+              <div><span class="k">Max drawdown (no SL)</span><span class="v neg">89.8%</span></div>
+            </div>
+            <p>BTCUSDT 1-hour futures grid, 2022 – mid-2025, $10,000, 10 levels. Without a stop-loss, 34 of 35 cycles won small profits — then one short opened near $46,400 (Feb 2024) was liquidated near $92,800 (Nov 2024). <strong>Win rate is meaningless without the size of the losses.</strong> Fees also scale badly: at 40 grid levels they consumed 21% of gross grid profit; at 320 levels, 149% — fee-negative while the dashboard looks busy. The best single real example found, a BNB grid on $5,000 over 89 days, made +2.70% — on $200 that is about <strong>$1.80 a month</strong>. <span class="src">Sources: github.com/dkalenov backtest, cryptogates.io, bitcointradingbots.com, bitsgap.com</span></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PATH 2 DETAIL: SPOT ============ -->
+      <section aria-labelledby="spot-h">
+        <h2 class="sec" id="spot-h">Path 2 · Holding BTC/ETH spot — the fallback that can't liquidate you</h2>
+        <p class="sec-sub">No leverage, no signals, no subscription: one 0.10% spot fee (about $0.20 on $200) and then nothing. It cannot pay $10–15 a day — it pays nothing most days and everything in a few explosive months. And this has been a losing year.</p>
+
+        <div class="chart-wrap">
+          <h3>Monthly closing price, indexed — Oct 2025 to Nov 2026</h3>
+          <p class="small" style="margin:0 0 10px">Monthly closes indexed to 100 at Oct 2025, so both coins share one honest scale. Both peaked in autumn 2025 and have fallen hard since. BTC all-time high $124,777 (7 Oct 2025); ETH $4,957 (Aug 2025).</p>
+          <div id="chartHost"></div>
+          <div class="chart-legend">
+            <span><span class="swatch" style="background:#e8a33d"></span>BTC — $109,608 → $61,578</span>
+            <span><span class="swatch" style="background:#7d8aa5"></span>ETH — $3,848 → $1,740</span>
+          </div>
+          <p class="src" style="margin-top:10px">Monthly closes from finance data fetched 21 Nov 2026 (data series: BTC/ETH, Binance). One-year returns to 20 Nov 2026: BTC −28.91%, ETH −38.57% — the source returned closest-match symbols, so treat exact decimals as indicative.</p>
+        </div>
+
+        <div class="table-scroll" style="margin-top:12px">
+          <table class="ytable">
+            <thead>
+              <tr><th scope="col">Year</th><th scope="col">BTC</th><th scope="col">ETH</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>2023</td><td class="pos">+154%</td><td class="pos">+90.8%</td></tr>
+              <tr><td>2024</td><td class="pos">+120%</td><td class="pos">+46.3%</td></tr>
+              <tr><td>2025</td><td class="neg">−5%</td><td class="neg">−11.0%</td></tr>
+              <tr><td>2026 so far</td><td class="neg">−29%</td><td class="neg">−47.5%</td></tr>
+              <tr><td>Last 12 months</td><td class="neg">−28.9% ($200 → ~$142)</td><td class="neg">−38.6% ($200 → ~$123)</td></tr>
+              <tr><td>Down from all-time high</td><td class="neg">−49.5%</td><td class="neg">−68.5%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small" style="margin-top:10px">Sources: cryptint.io (BTC statistics), pryanik.io (ETH by year), finance data fetched 21 Nov 2026. In a 2023/2024-type year, holding averages roughly +$20–25/month on $200 — lumpy, not steady. In a 2025/2026-type year, −$5 to −$50/month. ETH has fallen further than BTC in this cycle and is the weaker hold. The real risks are 30–70% drawdowns lasting months and leaving money sitting on an exchange.</p>
+      </section>
+
+      <!-- ============ THE PLAN ============ -->
+      <section aria-labelledby="plan-h">
+        <h2 class="sec" id="plan-h">Your plan — step by step</h2>
+        <p class="sec-sub">One clear recommendation, in order. Total extra cost: $0.</p>
+        <div class="steps">
+          <div class="step">
+            <h3>Paper-test your scanner first — 50 trades, 2–3 weeks, $0 at risk</h3>
+            <p>Log 50 paper trades at $5 risk, minimum 1:2 reward, max 2 per day, <strong>only when RSI + volume + trend all agree</strong> — never RSI alone (43.1% wins, −1.7% average in TraderSpy's own backtest). Count fees at $0.25–$1.00 per trade. <strong>Go live only if profit factor is above 1.2 and win rate is at least 40% after fees.</strong> Darwin Lab's fully published system managed only 1.00 — if yours matches that, you have no edge, and step 3 applies.</p>
+          </div>
+          <div class="step">
+            <h3>If it passes, trade live — with a reset target</h3>
+            <p>Aim for <strong>$2–5 on good days, $0–25 in a good month</strong> — not $10–15 a day. Fewer, better trades beat forced daily trades. The hard stop rules are below; they are not optional.</p>
+          </div>
+          <div class="step">
+            <h3>If the paper test fails, hold the $200 in BTC spot</h3>
+            <p>This is the likely outcome — 97% of persistent day traders lose. BTC spot is the only option with a positive long-run expected return, zero ongoing cost, no liquidation and no API exposure. Prefer BTC over ETH in this cycle (−28.9% vs −38.6% over the last year). Revisit futures only when a new rule set proves itself on paper.</p>
+          </div>
+          <div class="step">
+            <h3>Do not move exchanges for a $10–50 copy test</h3>
+            <p>The amounts that copy faithfully in practice ($100 Bybit, $50 Bitget, ~$500–1,000 Binance futures) exceed a safe test size, and verified leader drawdowns of 39–69% can halve a $50 test in one bad stretch. If copy trading is ever tried later: Binance, a leader with 90+ days, drawdown under 25% and positive <em>average copier</em> PnL — none was found in this research.</p>
+          </div>
+          <div class="step">
+            <h3>Gold (PAXG): same rules, nothing special</h3>
+            <p>No verified signal, copy-leader or grid record specific to PAXG futures was found. Treat gold exactly like any other pair in your scanner — same $5 risk, same paper test — and do not pay for a gold-specific signal service on this evidence.</p>
+          </div>
+        </div>
+
+        <h3 class="sub">Hard rules if you trade live</h3>
+        <ul class="rules">
+          <li><strong>$5</strong> maximum risk per trade — 2.5% of the account. Never more.</li>
+          <li><strong>2 trades</strong> maximum per day. No setup = no trade. A quiet day is a saved day.</li>
+          <li><strong>−$10</strong> — two losses in a row: stop for the day.</li>
+          <li><strong>−$20</strong> in a week (−10% of the account): stop for the week.</li>
+          <li><strong>Never</strong> the 10× all-in sizing seen in the audited signal trades — a stop-loss that price can gap or liquidate past is not a stop-loss.</li>
+          <li><strong>$0</strong> on subscriptions, bots and signal groups until the paper record — yours, not a seller's — proves an edge.</li>
+        </ul>
+      </section>
+
+      <!-- ============ COULD NOT VERIFY ============ -->
+      <section aria-labelledby="open-h">
+        <h2 class="sec" id="open-h">What could not be verified</h2>
+        <p class="sec-sub">Stated plainly, so nothing above rests on a guess.</p>
+        <div class="open-q">
+          <ul>
+            <li><strong>No independently audited win rate above 70%</strong> was found for any signal provider. Every 82–97% claim is self-reported. The only independent audit found is 37% (PNL Mama); Darwin Lab's 40.8% / profit factor 1.00 is a fully self-published paper record, not an independent audit — it is used here as the most transparent benchmark, not as verified fact.</li>
+            <li><strong>No copy-trading leader</strong> on Binance, Bybit, Bitget or Bitunix met all three filters at once: 90+ days history, max drawdown under 25%, and positive average copier PnL.</li>
+            <li><strong>No verified combined RSI + volume + trend intraday win rate</strong> exists for altcoin futures — only single-indicator backtests (RSI 43.1%, CCI 60.9% over 7 days).</li>
+            <li><strong>No PAXG-specific verified performance</strong> for signals, copy trading or grids.</li>
+            <li><strong>No verified grid-bot return for a $200 account</strong> — all backtests used $5,000–$10,000; the $200 figures are scaled arithmetic, not observed results.</li>
+            <li>TraderSpy's live signals page was not opened in this research; its 65–72% scorecards are reported as self-published, not verified live.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ SOURCES ============ -->
+      <footer>
+        <h2 class="sec" style="font-size:19px">Sources</h2>
+        <p class="small">Research compiled 21 Nov 2026. "Verified live" means the page was opened and read directly; other sources were read via search index on the same date.</p>
+        <ul class="sources">
+          <li>PNL Mama — independent CryptoSignals.org audit, 37% win rate (verified live): <a href="https://pnlmama.com/review/cryptosignals0rg/15888/">pnlmama.com/review/cryptosignals0rg/15888</a></li>
+          <li>Darwin Lab — public track record, 1,484 trades, PF 1.00 (verified live): <a href="https://darwintrade.com/blog/crypto-signal-channels-public-track-record-2026/">darwintrade.com/blog/crypto-signal-channels-public-track-record-2026</a></li>
+          <li>CryptoSignalsReview — 16-provider win-rate audit: <a href="https://cryptosignalsreview.com/crypto-signal-win-rate-accuracy-claims-audit/">cryptosignalsreview.com</a></li>
+          <li>Bullstar — CryptoSignals.org alternatives &amp; pricing: <a href="https://bullstarsignals.com/blog/cryptosignals-org-alternatives/">bullstarsignals.com</a></li>
+          <li>CryptoSignals.org — official pricing: <a href="https://cryptosignals.org/tag/rights/">cryptosignals.org</a></li>
+          <li>CoinCodeCap — Learn2Trade pricing &amp; Trustpilot: <a href="https://signals.coincodecap.com/best-crypto-signals">signals.coincodecap.com</a></li>
+          <li>Tradebise — premium pricing: <a href="https://tradebise.com/premium">tradebise.com/premium</a></li>
+          <li>TraderSpy — pricing &amp; signals: <a href="https://traderspy.app/signals/token/nvda">traderspy.app</a></li>
+          <li>TraderSpy blog — oversold-indicator backtest (RSI 43.1%, CCI 60.9%): <a href="https://blog.traderspy.app/en/blog/best-oversold-indicator-crypto-futures/">blog.traderspy.app</a></li>
+          <li>FeeOtter — copy-trading platform comparison: <a href="https://feeotter.com/en/articles/crypto-copy-trading-platform-comparison/">feeotter.com</a></li>
+          <li>Copi Tools — Binance copy trading minimums: <a href="https://copi-tools.com/blog/binance-copy-trading/">copi-tools.com</a> · <a href="https://withdrawfirst.com/best/copy-trading/">withdrawfirst.com</a></li>
+          <li>Cruxax — Binance leader audits: <a href="https://www.cruxax.com/leads/4471406909032852992">cruxax.com</a></li>
+          <li>Bitunix copy trading: <a href="https://www.bitunix.com/hub/blog/trading/bitunix-vs-weex-futures">bitunix.com</a> · <a href="https://coinpaper.com/5959/bitunix-responds-to-pro-trader-demand-with-new-copy-trading-feature">coinpaper.com</a></li>
+          <li>Spot grid 58-month backtest: <a href="https://mlh.forem.wtf/walid_koussa_0941941b1fdb/grid-trading-bot-backtest-a-fresh-bitcoin-grid-every-month-for-58-months-3n7a">mlh.forem.wtf</a></li>
+          <li>Futures grid backtest: <a href="https://github.com/dkalenov/trading_strategies/blob/HEAD/grid_trading_binance_futures/README.md">github.com/dkalenov</a></li>
+          <li>BNB grid example: <a href="https://cryptogates.io/playbooks/bnb-fell-11-in-3-months-this-grid-bot-made-2-70-anyway/">cryptogates.io</a></li>
+          <li>Grid fee drag: <a href="https://www.bitcointradingbots.com/guides/grid-bots/">bitcointradingbots.com</a></li>
+          <li>Binance native vs third-party bots: <a href="https://bitsgap.com/blog/best-binance-trading-bots-in-2026-native-bots-vs-third-party-platforms">bitsgap.com</a></li>
+          <li>BTC statistics by year: <a href="https://cryptint.io/statistics/bitcoin">cryptint.io</a></li>
+          <li>ETH by year: <a href="https://pryanik.io/en/review/eth/">pryanik.io</a></li>
+          <li>Day-trading base rates (Brazil / Taiwan / ESMA): <a href="https://emergeprofit.com/en/Is-futures-trading-profitable%3F/">emergeprofit.com</a></li>
+          <li>Binance futures fees (0.02% / 0.05%): <a href="https://dexsheet.com/binance/">dexsheet.com</a></li>
+        </ul>
+        <p class="small">This page is research, not financial advice. Every figure is as reported by its source on 21 Nov 2026; figures labelled as arithmetic in the underlying research are calculations from those sourced inputs.</p>
+      </footer>
+
+    </main>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ---------- Expectancy calculator ---------- */
+        var RISK = 5;
+        var els = {
+          win: document.getElementById("winRate"),
+          rr: document.getElementById("rr"),
+          fee: document.getElementById("fee"),
+          trades: document.getElementById("trades"),
+          winVal: document.getElementById("winRateVal"),
+          rrVal: document.getElementById("rrVal"),
+          feeVal: document.getElementById("feeVal"),
+          tradesVal: document.getElementById("tradesVal"),
+          perTrade: document.getElementById("perTrade"),
+          perMonth: document.getElementById("perMonth"),
+          perDay: document.getElementById("perDay")
+        };
+        function fmt(v, decimals) {
+          var s = (v < 0 ? "−$" : "+$") + Math.abs(v).toFixed(decimals);
+          return s;
+        }
+        function paint(el, v) {
+          el.textContent = v;
+          el.style.color = v.charAt(0) === "−" ? "var(--red)" : "var(--green)";
+        }
+        function calc() {
+          var w = parseInt(els.win.value, 10) / 100;
+          var rr = parseInt(els.rr.value, 10) / 10;
+          var fee = parseInt(els.fee.value, 10) / 100;
+          var trades = parseInt(els.trades.value, 10);
+          els.winVal.textContent = Math.round(w * 100) + "%";
+          els.rrVal.textContent = "1 : " + rr.toFixed(1);
+          els.feeVal.textContent = "$" + fee.toFixed(2);
+          els.tradesVal.textContent = trades;
+          var gross = w * RISK * rr - (1 - w) * RISK;
+          var net = gross - fee;
+          paint(els.perTrade, fmt(net, 2));
+          paint(els.perMonth, fmt(net * trades, 0));
+          paint(els.perDay, fmt((net * trades) / 20, 2));
+        }
+        ["win", "rr", "fee", "trades"].forEach(function (k) {
+          els[k].addEventListener("input", calc);
+        });
+        calc();
+
+        /* ---------- BTC / ETH monthly close chart ---------- */
+        var labels = ["Oct 25", "Nov", "Dec", "Jan 26", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov 26"];
+        var btc = [109608.01, 90360, 87648.22, 78741.09, 66973.26, 68284.48, 76346.57, 73674.39, 58624.71, 62887.88, 78581.29, 83078, 77582.02, 61577.92];
+        var eth = [3847.99, 2991.26, 2971.64, 2451.95, 1964.51, 2105.43, 2257.51, 2007.01, 1572.01, 1862.6, 2467.65, 2686.01, 2255.66, 1740.29];
+
+        var W = 760, H = 300, PL = 40, PR = 8, PT = 14, PB = 26;
+        var iw = W - PL - PR, ih = H - PT - PB;
+        var LO = 35, HI = 108; /* indexed scale: Oct 2025 close = 100 */
+        function norm(series) {
+          var base = series[0];
+          return series.map(function (v, i) {
+            var idx = (v / base) * 100;
+            var x = PL + (iw * i) / (series.length - 1);
+            var y = PT + ih - ((idx - LO) / (HI - LO)) * ih;
+            return [x, y];
+          });
+        }
+        function path(pts) {
+          return pts.map(function (p, i) {
+            return (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1);
+          }).join(" ");
+        }
+        function dots(pts, color) {
+          return pts.map(function (p) {
+            return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="2.6" fill="' + color + '"/>';
+          }).join("");
+        }
+        var bp = norm(btc), ep = norm(eth);
+        var grid = "";
+        [40, 60, 80, 100].forEach(function (gv) {
+          var gy = PT + ih - ((gv - LO) / (HI - LO)) * ih;
+          grid += '<line x1="' + PL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + gy.toFixed(1) + '" stroke="var(--line)" stroke-width="1"/>' +
+            '<text x="' + (PL - 6) + '" y="' + (gy + 3.5).toFixed(1) + '" font-size="10.5" fill="var(--ink-2)" text-anchor="end" font-family="IBM Plex Mono, monospace">' + gv + "</text>";
+        });
+        var xlab = "";
+        labels.forEach(function (t, i) {
+          if (i % 2 !== 0 && i !== labels.length - 1) return;
+          var x = PL + (iw * i) / (labels.length - 1);
+          var anchor = i === 0 ? "start" : (i === labels.length - 1 ? "end" : "middle");
+          xlab += '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" font-size="10.5" fill="var(--ink-2)" text-anchor="' + anchor + '" font-family="IBM Plex Mono, monospace">' + t + "</text>";
+        });
+        var btcLast = bp[bp.length - 1], ethLast = ep[ep.length - 1];
+        var svg =
+          '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Line chart of Bitcoin and Ethereum monthly closing prices from October 2025 to November 2026, both falling steeply.">' +
+          grid +
+          '<path d="' + path(bp) + '" fill="none" stroke="#e8a33d" stroke-width="2.4"/>' +
+          '<path d="' + path(ep) + '" fill="none" stroke="#7d8aa5" stroke-width="2.4"/>' +
+          dots(bp, "#e8a33d") + dots(ep, "#7d8aa5") +
+          '<text x="' + (btcLast[0] - 4) + '" y="' + (btcLast[1] - 10) + '" font-size="12" font-weight="600" fill="#e8a33d" text-anchor="end" font-family="IBM Plex Mono, monospace">BTC $61,578</text>' +
+          '<text x="' + (ethLast[0] - 4) + '" y="' + (ethLast[1] + 20) + '" font-size="12" font-weight="600" fill="#7d8aa5" text-anchor="end" font-family="IBM Plex Mono, monospace">ETH $1,740</text>' +
+          xlab +
+          "</svg>";
+        document.getElementById("chartHost").innerHTML = svg;
+      })();
+    </script>
+  </body>
+</html>
