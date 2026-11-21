@@ -1,20 +1,33 @@
-// M Ahmad Crypto Ai — SIMPLE version.
-// One screen only: auto-scan crypto + gold, show ONE best trade.
+// M Ahmad Crypto Ai — TraderSpy-style dashboard (simple version).
+// One screen: auto-scan crypto + gold, show BEST trades, plus:
+//  - Signals Feed: every signal logged with its real outcome
+//    (Hit TP1/TP2/TP3, Stopped, Expired after 24h) and a win rate.
+//  - Market Brief: a short auto summary of the market right now.
+//  - Market Insight: Fear & Greed, BTC dominance, BTC/ETH long-short
+//    ratio, top movers.
+//  - Paper Trades: practice any setup with $5 virtual risk — TP/SL
+//    are tracked live against real prices, no real money.
 // All analysis runs here in the background (trend / EMA / RSI / MACD /
-// volume / support-resistance / ATR / 15m confirmation). Nothing is shown
-// except the decision + Entry / SL / TP1-TP3 + size. No fake data: if live
-// data fails, show an error, never an invented price.
+// volume / support-resistance / ATR / 15m confirmation). No fake data:
+// if live data fails, show an error, never an invented price.
 (function () {
   "use strict";
   var COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT",
     // Binance futures coins (mostly NOT on Binance spot — scanned via Bitget Futures candles)
-    "BLESSUSDT","HUMAUSDT","SENTUSDT","MMTUSDT","BREVUSDT","ZKCUSDT","LUNCUSDT","INITUSDT","LYNUSDT"];
+    "BLESSUSDT","HUMAUSDT","SENTUSDT","MMTUSDT","BREVUSDT","ZKCUSDT","LUNCUSDT","INITUSDT","LYNUSDT",
+    // Extra liquid futures coins — scan now covers 50 coins + gold
+    "ENAUSDT","ONDOUSDT","JUPUSDT","TIAUSDT","SEIUSDT","INJUSDT","RENDERUSDT","FETUSDT","PYTHUSDT","STRKUSDT","WLDUSDT","FLOKIUSDT","BONKUSDT","SHIBUSDT","TRXUSDT","XLMUSDT","HBARUSDT","ALGOUSDT","VETUSDT","FILUSDT"];
   // Coins actually listed on Binance spot — only these go in the live list ticker call.
   var LIST_COINS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","LINKUSDT","AVAXUSDT","LTCUSDT","DOTUSDT","NEARUSDT","SUIUSDT","ARBUSDT","OPUSDT","PEPEUSDT","WIFUSDT","TAOUSDT","APTUSDT","ATOMUSDT","PAXGUSDT"];
   var RISK = 5; // $ per trade, fixed
   var SAPI = "https://data-api.binance.vision/api/v3";
   var $ = function (id) { return document.getElementById(id); };
   var scanning = false, lastScanAt = 0, nextTimer = null;
+  var scanMap = {};       // symbol -> {k1h, k15, source, lastPrice}
+  var lastTrade = {};     // prefix ("C"/"G"/"A") -> last shown trade object
+  var lastTickers = null; // Binance 24h tickers array
+  var fgValue = null, fgLabel = null, btcDom = null, lsBtc = null, lsEth = null;
+  var lastScanSummary = null;
 
   function fmt(p) {
     if (p == null || !isFinite(p)) return "—";
@@ -30,6 +43,8 @@
     if (q >= 1) return q.toFixed(2);
     return String(Number(q.toPrecision(4)));
   }
+  function fmtMoney(n) { return (n >= 0 ? "+$" : "-$") + Math.abs(n).toFixed(2); }
+  function timeStr(ms) { return new Date(ms).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}); }
   function proxied(url) { return "/api/proxy?url=" + encodeURIComponent(url); }
   function fetchJSON(url, ms) {
     ms = ms || 9000;
@@ -145,6 +160,280 @@
     return out; // NO TRADE for this coin
   }
 
+  function levelsOf(t) {
+    var entry = t.price, r = t.r, tp1, tp2, tp3;
+    if (t.dir === "LONG") { tp1 = entry + r; tp2 = entry + 1.5 * r; tp3 = entry + 2 * r; }
+    else { tp1 = entry - r; tp2 = entry - 1.5 * r; tp3 = entry - 2 * r; }
+    return {entry: entry, sl: t.sl, tp1: tp1, tp2: tp2, tp3: tp3, r: r};
+  }
+
+  // ---------- local storage (safe fallback if unavailable) ----------
+  var memStore = {};
+  function storeGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return memStore[key] || null; }
+  }
+  function storeSet(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) { memStore[key] = val; }
+  }
+  function loadJSON(key) {
+    try { var v = storeGet(key); return v ? JSON.parse(v) : []; } catch (e) { return []; }
+  }
+  function saveJSON(key, arr) { try { storeSet(key, JSON.stringify(arr)); } catch (e) {} }
+
+  // ---------- Signals Feed ----------
+  var SIG_KEY = "mact_signals_v1";
+  function getSignals() { return loadJSON(SIG_KEY); }
+  function saveSignals(arr) { saveJSON(SIG_KEY, arr); }
+  function addSignal(t) {
+    if (!t || !t.dir) return;
+    var lv = levelsOf(t);
+    var arr = getSignals();
+    // Dedupe: same coin + direction already open with a similar entry.
+    for (var i = 0; i < arr.length; i++) {
+      var s = arr[i];
+      if (s.status === "OPEN" && s.symbol === t.symbol && s.dir === t.dir &&
+          Math.abs(s.entry - t.price) / t.price < 0.02) return;
+    }
+    arr.unshift({id: Date.now() + Math.floor(Math.random() * 1000), symbol: t.symbol, dir: t.dir,
+      entry: t.price, sl: lv.sl, tp1: lv.tp1, tp2: lv.tp2, tp3: lv.tp3, r: lv.r,
+      time: Date.now(), status: "OPEN", source: t.source || ""});
+    while (arr.length > 50) arr.pop();
+    saveSignals(arr);
+    renderFeed();
+  }
+  // Walk 1h candles after the signal: first touch decides, like TraderSpy.
+  // If TP1 was touched first, the outcome keeps the highest TP reached even
+  // if price later hits the stop. A wick counts. Same-candle SL+TP = Stopped.
+  function walkOutcome(candles, since, dir, sl, tp1, tp2, tp3) {
+    var best = null;
+    for (var i = 0; i < candles.length; i++) {
+      var c = candles[i];
+      if (c[0] < since - 3600000) continue;
+      var high = parseFloat(c[2]), low = parseFloat(c[3]);
+      if (dir === "LONG") {
+        if (low <= sl) return best || "Stopped";
+        if (high >= tp3) return "Hit TP3";
+        if (high >= tp2) best = "Hit TP2";
+        else if (high >= tp1) best = "Hit TP1";
+      } else {
+        if (high >= sl) return best || "Stopped";
+        if (low <= tp3) return "Hit TP3";
+        if (low <= tp2) best = "Hit TP2";
+        else if (low <= tp1) best = "Hit TP1";
+      }
+    }
+    if (best) return best;
+    if (Date.now() - since > 24 * 3600 * 1000) return "Expired";
+    return null; // still open
+  }
+  function updateOutcomes() {
+    var arr = getSignals(), changed = false;
+    for (var i = 0; i < arr.length; i++) {
+      var s = arr[i];
+      if (s.status !== "OPEN") continue;
+      var m = scanMap[s.symbol];
+      if (!m || !m.k1h) continue;
+      var oc = walkOutcome(m.k1h, s.time, s.dir, s.sl, s.tp1, s.tp2, s.tp3);
+      if (oc) { s.status = oc; s.closedAt = Date.now(); changed = true; }
+    }
+    if (changed) { saveSignals(arr); renderFeed(); }
+  }
+  function statusBadge(st) {
+    if (st === "OPEN") return '<span class="bdg open">OPEN</span>';
+    if (st === "Stopped") return '<span class="bdg stop">STOPPED</span>';
+    if (st === "Expired") return '<span class="bdg exp">EXPIRED</span>';
+    return '<span class="bdg hit">' + st.toUpperCase() + '</span>';
+  }
+  function renderFeed() {
+    var arr = getSignals();
+    var closed = arr.filter(function (s) { return s.status !== "OPEN"; });
+    var hits = closed.filter(function (s) { return s.status.indexOf("Hit") === 0; }).length;
+    var rateEl = $("feedRate");
+    if (closed.length) {
+      var pct = Math.round(hits / closed.length * 100);
+      rateEl.textContent = "Hit rate " + pct + "% (" + hits + "/" + closed.length + " closed)";
+    } else {
+      rateEl.textContent = arr.length ? "0 closed yet" : "";
+    }
+    var list = $("feedList");
+    if (!arr.length) {
+      list.textContent = "No signals yet — the first scan will log every trade here with its outcome.";
+      return;
+    }
+    list.innerHTML = "";
+    arr.slice(0, 20).forEach(function (s) {
+      var d = document.createElement("div");
+      d.className = "feedrow";
+      var name = s.symbol === "PAXGUSDT" ? "GOLD" : s.symbol.replace("USDT", "");
+      d.innerHTML = '<span class="fr-l">' + name + ' <span class="bdg ' + s.dir.toLowerCase() + '">' + s.dir + '</span>' +
+        '<br><span class="fr-s">' + timeStr(s.time) + ' · Entry ' + fmt(s.entry) + ' · TP1 ' + fmt(s.tp1) + ' · SL ' + fmt(s.sl) + '</span></span>' +
+        statusBadge(s.status);
+      list.appendChild(d);
+    });
+  }
+
+  // ---------- Paper Trades ----------
+  var PAPER_KEY = "mact_paper_v1";
+  function getPaper() { return loadJSON(PAPER_KEY); }
+  function savePaper(arr) { saveJSON(PAPER_KEY, arr); }
+  function addPaperTrade(t) {
+    if (!t || !t.dir) return false;
+    var lv = levelsOf(t);
+    var arr = getPaper();
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      if (p.status === "OPEN" && p.symbol === t.symbol && p.dir === t.dir) return false;
+    }
+    arr.unshift({id: Date.now() + Math.floor(Math.random() * 1000), symbol: t.symbol, dir: t.dir,
+      entry: t.price, sl: lv.sl, tp1: lv.tp1, tp2: lv.tp2, tp3: lv.tp3, r: lv.r,
+      time: Date.now(), status: "OPEN", tp1hit: false, tp2hit: false, realized: 0});
+    while (arr.length > 20) arr.pop();
+    savePaper(arr);
+    renderPaper();
+    return true;
+  }
+  // Paper-trade walk: book 50% at TP1 (+$2.50), 25% at TP2 (+$1.88),
+  // 25% at TP3 (+$2.50) = +$6.88 max. SL before TP1 = -$5.00.
+  // After TP1 the stop moves to breakeven (entry).
+  function updatePaper() {
+    var arr = getPaper(), changed = false;
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      if (p.status !== "OPEN") continue;
+      var m = scanMap[p.symbol];
+      if (!m || !m.k1h) continue;
+      var done = false;
+      for (var j = 0; j < m.k1h.length && !done; j++) {
+        var c = m.k1h[j];
+        if (c[0] < p.time - 3600000) continue;
+        var high = parseFloat(c[2]), low = parseFloat(c[3]);
+        var slNow = p.tp1hit ? p.entry : p.sl;
+        if (p.dir === "LONG") {
+          if (low <= slNow) { p.status = "CLOSED"; p.pnl = p.realized; p.closeNote = p.tp1hit ? "Breakeven after TP1" : "Stop loss hit"; done = true; break; }
+          if (!p.tp1hit && high >= p.tp1) { p.tp1hit = true; p.realized += 2.50; }
+          if (p.tp1hit && !p.tp2hit && high >= p.tp2) { p.tp2hit = true; p.realized += 1.88; }
+          if (p.tp2hit && high >= p.tp3) { p.realized += 2.50; p.status = "CLOSED"; p.pnl = p.realized; p.closeNote = "All targets hit"; done = true; break; }
+        } else {
+          if (high >= slNow) { p.status = "CLOSED"; p.pnl = p.realized; p.closeNote = p.tp1hit ? "Breakeven after TP1" : "Stop loss hit"; done = true; break; }
+          if (!p.tp1hit && low <= p.tp1) { p.tp1hit = true; p.realized += 2.50; }
+          if (p.tp1hit && !p.tp2hit && low <= p.tp2) { p.tp2hit = true; p.realized += 1.88; }
+          if (p.tp2hit && low <= p.tp3) { p.realized += 2.50; p.status = "CLOSED"; p.pnl = p.realized; p.closeNote = "All targets hit"; done = true; break; }
+        }
+      }
+      if (!done && Date.now() - p.time > 24 * 3600 * 1000) {
+        // Expire after 24h: close the remaining size at the last price.
+        var lastClose = parseFloat(m.k1h[m.k1h.length - 1][4]);
+        var rem = p.tp2hit ? 0.25 : p.tp1hit ? 0.5 : 1;
+        var mult = p.dir === "LONG" ? (lastClose - p.entry) / p.r : (p.entry - lastClose) / p.r;
+        p.status = "CLOSED"; p.pnl = p.realized + rem * mult * RISK; p.closeNote = "Expired after 24h";
+        done = true;
+      }
+      if (done) changed = true;
+    }
+    if (changed) { savePaper(arr); renderPaper(); }
+  }
+  function paperLivePL(p) {
+    var m = scanMap[p.symbol];
+    if (!m) return null;
+    var lastClose = parseFloat(m.k1h[m.k1h.length - 1][4]);
+    var rem = p.tp2hit ? 0.25 : p.tp1hit ? 0.5 : 1;
+    var mult = p.dir === "LONG" ? (lastClose - p.entry) / p.r : (p.entry - lastClose) / p.r;
+    return {pl: p.realized + rem * mult * RISK, price: lastClose};
+  }
+  function renderPaper() {
+    var arr = getPaper();
+    var list = $("paperList");
+    var totalEl = $("paperTotal");
+    if (!arr.length) {
+      list.textContent = "No paper trades yet — tap “Paper-trade this setup” on any signal to practice with $5 virtual risk.";
+      totalEl.textContent = "";
+      return;
+    }
+    var total = 0;
+    list.innerHTML = "";
+    arr.slice(0, 12).forEach(function (p) {
+      var d = document.createElement("div");
+      d.className = "feedrow";
+      var name = p.symbol === "PAXGUSDT" ? "GOLD" : p.symbol.replace("USDT", "");
+      var right, note;
+      if (p.status === "OPEN") {
+        var live = paperLivePL(p);
+        var pl = live ? live.pl : 0;
+        total += pl;
+        note = "Entry " + fmt(p.entry) + " · Live " + (live ? fmt(live.price) : "—") + (p.tp1hit ? " · TP1 ✓" : "") + (p.tp2hit ? " · TP2 ✓" : "");
+        right = '<span style="color:' + (pl >= 0 ? "var(--long)" : "var(--short)") + '">' + fmtMoney(pl) + '</span> <span class="bdg open">OPEN</span>';
+      } else {
+        total += p.pnl || 0;
+        note = "Entry " + fmt(p.entry) + " · " + (p.closeNote || "");
+        right = '<span style="color:' + ((p.pnl || 0) >= 0 ? "var(--long)" : "var(--short)") + '">' + fmtMoney(p.pnl || 0) + '</span> <span class="bdg ' + ((p.pnl || 0) >= 0 ? "hit" : "stop") + '">CLOSED</span>';
+      }
+      d.innerHTML = '<span class="fr-l">' + name + ' <span class="bdg ' + p.dir.toLowerCase() + '">' + p.dir + '</span>' +
+        '<br><span class="fr-s">' + timeStr(p.time) + ' · ' + note + '</span></span>' + right;
+      list.appendChild(d);
+    });
+    totalEl.textContent = "Total " + fmtMoney(total) + " (virtual)";
+  }
+
+  // ---------- Market Brief + Insight ----------
+  function renderBrief() {
+    if (!lastScanSummary) return;
+    var s = lastScanSummary;
+    var parts = [];
+    var btc = lastTickers ? lastTickers.filter(function (t) { return t.symbol === "BTCUSDT"; })[0] : null;
+    if (btc) {
+      var chg = parseFloat(btc.priceChangePercent);
+      parts.push("<b>BTC $" + fmt(parseFloat(btc.lastPrice)) + "</b> (" + (chg >= 0 ? "+" : "") + chg.toFixed(2) + "% 24h)");
+    }
+    if (s.goldPrice) parts.push("gold <b>$" + fmt(s.goldPrice) + "</b>");
+    if (fgValue != null) parts.push("Fear &amp; Greed <b>" + fgValue + " (" + fgLabel + ")</b>");
+    var lines = parts.length ? parts.join(" · ") + ". " : "";
+    if (s.crypto) lines += "Best crypto setup: <b>" + s.crypto.symbol.replace("USDT", "") + " " + s.crypto.dir + "</b> at $" + fmt(s.crypto.price) + ". ";
+    else lines += "No crypto coin passed all checks — " + s.passed + " of " + s.total + " had a setup, volume is thin. ";
+    if (s.gold) lines += "Gold: <b>" + s.gold.dir + "</b> at $" + fmt(s.gold.price) + ". ";
+    else lines += "Gold: no setup right now. ";
+    lines += "Waiting for volume is part of the plan — the next scan runs in 5 minutes.";
+    $("briefTxt").innerHTML = lines;
+  }
+  function loadFearGreed() {
+    getJSON("https://api.alternative.me/fng/?limit=1", 8000).then(function (j) {
+      var d = j && j.data && j.data[0];
+      if (!d) return;
+      fgValue = d.value; fgLabel = d.value_classification;
+      $("fgVal").textContent = d.value + " · " + d.value_classification;
+      renderBrief();
+    }).catch(function () { $("fgVal").textContent = "—"; });
+  }
+  function loadDominance() {
+    getJSON("https://api.coingecko.com/api/v3/global", 10000).then(function (j) {
+      var b = j && j.data && j.data.market_cap_percentage && j.data.market_cap_percentage.btc;
+      if (!b) return;
+      btcDom = b;
+      $("domVal").textContent = b.toFixed(1) + "%";
+    }).catch(function () { $("domVal").textContent = "—"; });
+  }
+  function loadLongShort(instId, elId, setter) {
+    getJSON("https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio?instId=" + instId + "&period=1H&limit=1", 8000).then(function (j) {
+      var r = j && j.data && j.data[0] && parseFloat(j.data[0].ratio);
+      if (!r || !isFinite(r)) { $(elId).textContent = "—"; return; }
+      var longPct = Math.round(r / (1 + r) * 100);
+      setter(longPct);
+      $(elId).textContent = longPct + "% long / " + (100 - longPct) + "% short";
+    }).catch(function () { $(elId).textContent = "—"; });
+  }
+  function loadInsight() {
+    loadFearGreed();
+    loadDominance();
+    loadLongShort("BTC-USDT-SWAP", "lsBtc", function (v) { lsBtc = v; });
+    loadLongShort("ETH-USDT-SWAP", "lsEth", function (v) { lsEth = v; });
+  }
+  function renderMovers() {
+    if (!lastTickers || !lastTickers.length) return;
+    var sorted = lastTickers.slice().sort(function (a, b) { return parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent); });
+    var top = sorted.slice(0, 3).map(function (t) { return t.symbol.replace("USDT", "") + " +" + parseFloat(t.priceChangePercent).toFixed(1) + "%"; });
+    var bot = sorted.slice(-3).reverse().map(function (t) { return t.symbol.replace("USDT", "") + " " + parseFloat(t.priceChangePercent).toFixed(1) + "%"; });
+    $("moversBox").innerHTML = "Top movers 24h — <b style=\"color:var(--long)\">" + top.join(" · ") + "</b><br>Weakest 24h — <b style=\"color:var(--short)\">" + bot.join(" · ") + "</b>";
+  }
+
   function setLive(on) {
     $("livePill").className = "pill" + (on ? "" : " off");
     $("liveTxt").textContent = on ? "LIVE" : "OFFLINE";
@@ -153,6 +442,7 @@
   function setBar(p) { $("barFill").style.width = p + "%"; }
 
   function showTrade(t, pfx) {
+    lastTrade[pfx] = t;
     var isGold = t.symbol === "PAXGUSDT";
     var name = isGold ? "GOLD (PAXG / XAU)" : t.symbol.replace("USDT", " / USDT");
     $("word" + pfx).textContent = t.dir;
@@ -160,38 +450,40 @@
     $("sym" + pfx).textContent = name;
     $("reason" + pfx).textContent = t.why + " Confidence " + Math.min(92, Math.round(t.score)) + "%.";
     $("levels" + pfx).style.display = "grid";
-    var entry = t.price, r = t.r;
-    var tp1, tp2, tp3;
-    if (t.dir === "LONG") { tp1 = entry + r; tp2 = entry + 1.5 * r; tp3 = entry + 2 * r; }
-    else { tp1 = entry - r; tp2 = entry - 1.5 * r; tp3 = entry - 2 * r; }
-    $("lvEntry" + pfx).textContent = fmt(entry);
+    var lv = levelsOf(t);
+    $("lvEntry" + pfx).textContent = fmt(lv.entry);
     $("lvEntrySub" + pfx).textContent = isGold ? "XAU price" : "Market price now";
-    $("lvSL" + pfx).textContent = fmt(t.sl);
-    $("lvTP1" + pfx).textContent = fmt(tp1);
-    $("lvTP2" + pfx).textContent = fmt(tp2);
-    $("lvTP3" + pfx).textContent = fmt(tp3);
-    var qty = RISK / r;
-    var notional = qty * entry;
+    $("lvSL" + pfx).textContent = fmt(lv.sl);
+    $("lvTP1" + pfx).textContent = fmt(lv.tp1);
+    $("lvTP2" + pfx).textContent = fmt(lv.tp2);
+    $("lvTP3" + pfx).textContent = fmt(lv.tp3);
+    var qty = RISK / lv.r;
+    var notional = qty * lv.entry;
     var lev = isGold ? "0.01 lot" : (notional > 150 ? "3x" : "5x");
     $("lvSize" + pfx).textContent = isGold ? fmtQty(qty) + " oz" : fmtQty(qty) + " " + t.symbol.replace("USDT", "");
     $("lvSizeSub" + pfx).textContent = isGold ? "0.01 lot ≈ 1 oz · Margin ~$" + Math.round(notional / 100) : "≈ $" + Math.round(notional) + " notional · " + lev;
     var m = $("metaLine" + pfx);
     m.style.display = "block";
-    m.innerHTML = "Risk <b>$5.00</b> · Reward TP1 <b>+$5.00</b> · TP2 <b>+$7.50</b> · TP3 <b>+$10.00</b> · Book 50% at TP1, then move SL to entry. · RSI <b>" + t.rsi.toFixed(0) + "</b> · Volume <b>" + t.volRatio.toFixed(2) + "x</b>" + (t.source ? " · Source: <b>" + t.source + "</b>" : "") + " · Updated <b>" + new Date().toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) + "</b>";
+    m.innerHTML = "Risk <b>$5.00</b> · Reward TP1 <b>+$5.00</b> · TP2 <b>+$7.50</b> · TP3 <b>+$10.00</b> · Book 50% at TP1, then move SL to entry. · RSI <b>" + t.rsi.toFixed(0) + "</b> · Volume <b>" + t.volRatio.toFixed(2) + "x</b>" + (t.source ? " · Source: <b>" + t.source + "</b>" : "") + " · Updated <b>" + timeStr(Date.now()) + "</b>";
+    var btn = $("pt" + pfx);
+    if (btn) { btn.style.display = "block"; btn.textContent = "+ Paper-trade this setup ($5 risk)"; }
   }
   function showNoTrade(checked, bestNote, pfx) {
+    lastTrade[pfx] = null;
     $("word" + pfx).textContent = "NO TRADE";
     $("word" + pfx).className = "word wait";
     $("sym" + pfx).textContent = "No trade right now — wait";
     $("reason" + pfx).textContent = bestNote || ("Checked " + checked + " coins. None passed all checks (trend + RSI + volume + 15m confirmation). Waiting is also a trade — next auto-scan in 5 minutes.");
     $("levels" + pfx).style.display = "none";
     $("metaLine" + pfx).style.display = "none";
+    var btn = $("pt" + pfx);
+    if (btn) btn.style.display = "none";
   }
   function pushHist(text) {
     var list = $("histList");
     if (list.textContent === "No scan yet.") list.textContent = "";
     var d = document.createElement("div");
-    d.textContent = new Date().toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"}) + " — " + text;
+    d.textContent = timeStr(Date.now()) + " — " + text;
     list.prepend(d);
     while (list.children.length > 3) list.removeChild(list.lastChild);
   }
@@ -202,7 +494,10 @@
       setLive(true);
     }).catch(function () {});
     getJSON("https://api.gold-api.com/price/XAU", 8000).then(function (g) {
-      if (g && g.price) $("goldPx").textContent = "$" + fmt(parseFloat(g.price));
+      if (g && g.price) {
+        $("goldPx").textContent = "$" + fmt(parseFloat(g.price));
+        if (lastScanSummary) { lastScanSummary.goldPrice = parseFloat(g.price); renderBrief(); }
+      }
     }).catch(function () {
       getJSON(SAPI + "/ticker/24hr?symbol=PAXGUSDT", 8000).then(function (t) {
         $("goldPx").textContent = "$" + fmt(parseFloat(t.lastPrice));
@@ -228,6 +523,7 @@
     var jobs = COINS.map(function (sym) {
       return fetchPair(sym).then(function (res) {
         tick();
+        scanMap[sym] = res;
         var a = analyze(sym, res.k1h, res.k15);
         if (a) a.source = res.source;
         if (a && a.dir) results.push(a);
@@ -255,8 +551,11 @@
       var crypto = results.filter(function (x) { return x.symbol !== "PAXGUSDT"; });
       var gold = null;
       for (var gi = 0; gi < results.length; gi++) { if (results[gi].symbol === "PAXGUSDT") { gold = results[gi]; break; } }
+      var goldPrice = scanMap.PAXGUSDT ? parseFloat(scanMap.PAXGUSDT.k1h[scanMap.PAXGUSDT.k1h.length - 1][4]) : null;
+      lastScanSummary = {crypto: crypto.length ? crypto[0] : null, gold: gold, passed: results.length, total: total, goldPrice: goldPrice};
       if (crypto.length) {
         showTrade(crypto[0], "C");
+        addSignal(crypto[0]);
         pushHist("Crypto: " + crypto[0].symbol.replace("USDT", "") + " " + crypto[0].dir + " @ " + fmt(crypto[0].price));
       } else {
         showNoTrade(total - 1, null, "C");
@@ -264,11 +563,17 @@
       }
       if (gold) {
         showTrade(gold, "G");
+        addSignal(gold);
         pushHist("Gold: " + gold.dir + " @ " + fmt(gold.price));
       } else {
         showNoTrade(1, "Gold checked. No setup passed all checks — next auto-scan in 5 minutes.", "G");
         pushHist("Gold: NO TRADE");
       }
+      // Outcomes + paper trades are checked against this scan's fresh candles.
+      updateOutcomes();
+      updatePaper();
+      renderPaper();
+      renderBrief();
       setStatus("Scanned " + total + " coins + gold · " + results.length + " passed all checks · Next auto-scan in 5 min");
     });
   }
@@ -358,11 +663,14 @@
       analyzing = false;
       $("analyzeBtn").disabled = false;
       $("analyzeResult").style.display = "block";
+      scanMap[sym] = res;
       var a = analyze(sym, res.k1h, res.k15);
       if (a) a.source = res.source;
       var srcNote = res.source === "Binance" ? "Source: Binance live data." : "Source: " + res.source + " live data — Binance spot does not list " + sym + ", so candles come from " + res.source + ". Price may differ slightly from Binance futures.";
       if (a && a.dir) {
         showTrade(a, "A");
+        addSignal(a);
+        updateOutcomes();
         $("analyzeStatus").textContent = sym + " analyzed · " + srcNote;
         pushHist(sym.replace("USDT", "") + " " + a.dir + " @ " + fmt(a.price) + " (your analyze)");
       } else if (a) {
@@ -385,6 +693,7 @@
     var syms = LIST_COINS.map(function (s) { return '"' + s + '"'; }).join(",");
     getJSON(SAPI + "/ticker/24hr?symbols=" + encodeURIComponent("[" + syms + "]"), 12000).then(function (arr) {
       if (!arr || !arr.length) throw new Error("empty");
+      lastTickers = arr;
       arr.sort(function (a, b) { return parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume); });
       var list = $("coinList");
       list.innerHTML = "";
@@ -399,15 +708,36 @@
       });
       $("connTxt").textContent = "● LIVE · Binance";
       setLive(true);
+      renderMovers();
+      renderBrief();
     }).catch(function () {
       $("coinList").textContent = "Coin list failed to load — tap SCAN NOW to retry.";
       $("connTxt").textContent = "Offline — retry";
     });
   }
 
+  function wirePaperButton(pfx) {
+    var btn = $("pt" + pfx);
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var t = lastTrade[pfx];
+      if (!t) return;
+      var ok = addPaperTrade(t);
+      btn.textContent = ok ? "Added to paper trades ✓" : "Already in paper trades";
+      setTimeout(function () { if (lastTrade[pfx]) btn.textContent = "+ Paper-trade this setup ($5 risk)"; }, 2500);
+    });
+  }
+
   $("scanBtn").addEventListener("click", scan);
+  $("clearFeed").addEventListener("click", function () { saveSignals([]); renderFeed(); });
   updatePrices();
   loadTickers();
+  loadInsight();
+  renderFeed();
+  renderPaper();
+  wirePaperButton("C");
+  wirePaperButton("G");
+  wirePaperButton("A");
   $("analyzeBtn").addEventListener("click", function () { analyzeCoin($("coinInput").value); });
   $("coinInput").addEventListener("keydown", function (e) { if (e.key === "Enter") analyzeCoin($("coinInput").value); });
   document.querySelectorAll("#quickChips .chip-btn").forEach(function (b) {

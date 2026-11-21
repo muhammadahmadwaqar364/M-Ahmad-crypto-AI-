@@ -53,6 +53,27 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
 .crow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);padding:10px 2px;text-align:left;font-weight:700}
 .crow:last-child{border-bottom:0}
 .crow .cp{color:var(--mut);font-weight:600;font-size:.88rem}
+.ptbtn{display:none;width:100%;margin-top:12px;border:1px solid var(--long);background:rgba(22,199,132,.12);color:var(--long);border-radius:12px;padding:11px;font-weight:800;font-size:.95rem;min-height:48px}
+.feedrow{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:.9rem;font-weight:600}
+.feedrow:last-child{border-bottom:0}
+.feedrow .fr-l{color:var(--ink)}
+.feedrow .fr-s{color:var(--mut);font-size:.82rem;font-weight:600}
+.bdg{display:inline-block;border-radius:99px;padding:2px 9px;font-size:.72rem;font-weight:800;white-space:nowrap}
+.bdg.long{background:rgba(22,199,132,.16);color:var(--long)}
+.bdg.short{background:rgba(246,70,93,.16);color:var(--short)}
+.bdg.hit{background:rgba(22,199,132,.16);color:var(--long)}
+.bdg.stop{background:rgba(246,70,93,.16);color:var(--short)}
+.bdg.open{background:rgba(0,229,199,.12);color:var(--acc)}
+.bdg.exp{background:rgba(126,130,168,.18);color:var(--dim)}
+.brief{font-size:.92rem;color:var(--mut);font-weight:600;line-height:1.65}
+.brief b{color:var(--ink)}
+.insight{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.icell{background:#0d0d26;border:1px solid var(--line);border-radius:12px;padding:11px}
+.icell .k{font-size:.66rem;font-weight:800;letter-spacing:.07em;color:var(--dim)}
+.icell .v{font-size:1.15rem;font-weight:800;margin-top:3px}
+.movers{font-size:.88rem;color:var(--mut);font-weight:600;padding:5px 0}
+.linkbtn{background:none;border:0;color:var(--dim);font-weight:700;font-size:.8rem;padding:4px 8px;float:right}
+.rate{color:var(--long);font-size:.8rem;font-weight:800}
 </style>
 </head>
 <body>
@@ -99,6 +120,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
         <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeA">—</div><div class="s" id="lvSizeSubA"></div></div>
       </div>
       <div class="meta" id="metaLineA" style="display:none"></div>
+      <button class="ptbtn" id="ptA" type="button">+ Paper-trade this setup ($5 risk)</button>
     </div>
   </div>
 
@@ -108,7 +130,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
     <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:var(--dim)">BEST CRYPTO TRADE</div>
     <div class="word wait" id="wordC">—</div>
     <div class="sym" id="symC">Waiting for scan…</div>
-    <p class="reason" id="reasonC">Scanning 20 crypto coins — the best one that passes all checks appears here.</p>
+    <p class="reason" id="reasonC">Scanning 50 crypto coins — the best one that passes all checks appears here.</p>
     <div class="grid" id="levelsC" style="display:none">
       <div class="cell"><div class="k">Entry</div><div class="v" id="lvEntryC">—</div><div class="s" id="lvEntrySubC"></div></div>
       <div class="cell sl"><div class="k">Stop Loss</div><div class="v" id="lvSLC">—</div><div class="s">Risk $5.00</div></div>
@@ -118,6 +140,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
       <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeC">—</div><div class="s" id="lvSizeSubC"></div></div>
     </div>
     <div class="meta" id="metaLineC" style="display:none"></div>
+    <button class="ptbtn" id="ptC" type="button">+ Paper-trade this setup ($5 risk)</button>
   </div>
 
   <div class="card" id="goldCard">
@@ -134,10 +157,31 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple
       <div class="cell"><div class="k">Size</div><div class="v" id="lvSizeG">—</div><div class="s" id="lvSizeSubG"></div></div>
     </div>
     <div class="meta" id="metaLineG" style="display:none"></div>
+    <button class="ptbtn" id="ptG" type="button">+ Paper-trade this setup ($5 risk)</button>
   </div>
 
+  <div class="hist"><h2>Market Brief</h2><div class="brief" id="briefTxt" style="border-bottom:0">Scanning the market…</div></div>
+
+  <div class="hist"><h2>Signals Feed <span class="rate" id="feedRate"></span><button class="linkbtn" id="clearFeed" type="button">Clear</button></h2><div id="feedList">No signals yet — the first scan will log every trade here with its outcome.</div></div>
+
+  <div class="hist"><h2>Market Insight</h2>
+    <div class="insight" style="border-bottom:0">
+      <div class="icell"><div class="k">FEAR &amp; GREED</div><div class="v" id="fgVal">—</div></div>
+      <div class="icell"><div class="k">BTC DOMINANCE</div><div class="v" id="domVal">—</div></div>
+      <div class="icell"><div class="k">BTC LONG / SHORT</div><div class="v" id="lsBtc">—</div></div>
+      <div class="icell"><div class="k">ETH LONG / SHORT</div><div class="v" id="lsEth">—</div></div>
+    </div>
+    <div class="movers" id="moversBox" style="border-bottom:0">Loading market data…</div>
+  </div>
+
+  <div class="hist"><h2>Paper Trades <span class="rate" id="paperTotal"></span></h2><div id="paperList">No paper trades yet — tap “Paper-trade this setup” on any signal to practice with $5 virtual risk.</div></div>
+
+  <div class="hist"><h2>Market Brief</h2><div id="briefLine">Loading market brief…</div><div id="heatMap" style="margin-top:8px"></div></div>
+
+  <div class="hist"><h2>Signals Feed <span id="winRate" style="color:var(--dim);font-size:.8rem;">No closed signals yet</span></h2><div id="feedList">No signals yet — the next auto-scan adds the best trade here.</div><p style="font-size:.78rem;color:var(--dim);font-weight:600;margin:8px 0 0">HIT means the price touched TP1 (book 50% there, then move SL to entry). Losing signals stay in this feed — nothing is deleted. Feed is saved on this phone only.</p></div>
+
   <div class="hist"><h2>Last scans</h2><div id="histList">No scan yet.</div></div>
-  <p class="note">Analysis runs in the background — trend, RSI, MACD, volume, support / resistance, funding, open interest and BTC context. No signal is 100%. Always use the stop loss. This is not financial advice.</p>
+  <p class="note">Analysis runs in the background — trend, RSI, MACD, volume, support / resistance, funding, open interest and BTC context. Signals stay in the feed with their real outcome: Hit TP1 / TP2 / TP3, Stopped, or Expired after 24h. No signal is 100%. Always use the stop loss. This is not financial advice.</p>
 </div>
 <script src="js/simple.js"></script>
 </body>
